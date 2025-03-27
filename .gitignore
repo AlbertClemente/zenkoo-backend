@@ -1,0 +1,19 @@
+# Entorno virtual
+.venv/
+
+# Archivos de SQLite
+*.sqlite3
+
+# Archivos de Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Archivos de logs
+*.log
+
+# Configuración de PyCharm (opcional, si no quieres subirla)
+.idea/
+
+# Archivos del sistema
+.DS_Store
