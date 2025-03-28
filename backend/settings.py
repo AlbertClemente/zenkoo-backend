@@ -126,3 +126,6 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ASGI_APPLICATION = 'backend.asgi.application'
+
+AUTH_USER_MODEL = 'savings.User' #Usar modelo de usuario personalizado definido en la app Savings
+
