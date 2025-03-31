@@ -48,7 +48,7 @@ class IncomeSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'amount', 'date', 'type', 'created_at', 'updated_at', 'user'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
 class ExpenseSerializer(serializers.ModelSerializer):
     """Serializer para registrar y ver gastos del usuario"""
@@ -58,7 +58,7 @@ class ExpenseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'amount', 'date', 'type', 'created_at', 'updated_at', 'user', 'category'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
 class SavingGoalSerializer(serializers.ModelSerializer):
     """Serializer para crear, listar y actualizar metas de ahorro"""
@@ -68,7 +68,7 @@ class SavingGoalSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'target_amount', 'current_amount', 'deadline', 'status', 'created_at', 'updated_at', 'user'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'current_amount']
 
 class ReflectionSerializer(serializers.ModelSerializer):
     """Serializer para crear y ver reflexiones personales del usuario"""
@@ -78,7 +78,7 @@ class ReflectionSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'content', 'created_at', 'updated_at', 'user'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer para gestionar categorías y subcategorías"""
@@ -88,7 +88,7 @@ class CategorySerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'type', 'created_at', 'updated_at', 'user', 'parent'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer para mostrar y gestionar notificaciones del usuario"""
@@ -98,4 +98,4 @@ class NotificationSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'message', 'is_read', 'created_at', 'user'
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'user']

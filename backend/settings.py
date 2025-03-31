@@ -129,3 +129,10 @@ ASGI_APPLICATION = 'backend.asgi.application'
 
 AUTH_USER_MODEL = 'savings.User' #Usar modelo de usuario personalizado definido en la app Savings
 
+# JWT (JSON WEB TOKEN)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
