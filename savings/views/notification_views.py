@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, UpdateAPIView
+from rest_framework.generics import ListCreateAPIView, RetrieveAPIView,  UpdateAPIView, DestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -15,6 +15,13 @@ class NotificationListCreateView(ListCreateAPIView):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+class NotificationRetrieveView(RetrieveAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
 
 class NotificationMarkReadView(UpdateAPIView):
     """Marcar una notificación como leída"""
@@ -29,3 +36,11 @@ class NotificationMarkReadView(UpdateAPIView):
         instance.is_read = True
         instance.save()
         return Response(self.get_serializer(instance).data)
+
+class NotificationDeleteView(DestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+    queryset = Notification.objects.all()
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user)
