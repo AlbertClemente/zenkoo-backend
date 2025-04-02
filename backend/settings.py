@@ -127,6 +127,13 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 ASGI_APPLICATION = 'backend.asgi.application'
 
+# Channel Layers (por defecto en memoria)
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer"
+    }
+}
+
 AUTH_USER_MODEL = 'savings.User' #Usar modelo de usuario personalizado definido en la app Savings
 
 # JWT (JSON WEB TOKEN)

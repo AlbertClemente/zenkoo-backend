@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from savings.models import Cripto
 from savings.serializers import CriptoSerializer
 from django.utils.timezone import now
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
 
 class CriptoListView(ListAPIView):
     serializer_class = CriptoSerializer
@@ -56,6 +58,22 @@ class CriptoUpdateView(APIView):
                     'timestamp': now()
                 }
             )
+
+            # Emitimos por WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "cripto_prices",
+                {
+                    "type": "send_cripto_update",
+                    "data": {
+                        "name": cripto.name,
+                        "symbol": cripto.symbol,
+                        "price": str(cripto.price),
+                        "timestamp": str(cripto.timestamp),
+                    },
+                }
+            )
+
             resultados.append(CriptoSerializer(cripto).data)
 
         return Response(resultados)
