@@ -1,22 +1,50 @@
-# Entorno virtual
-.venv/
-
-# Archivos de SQLite
-*.sqlite3
-
-# Archivos de Python
+# Python
 __pycache__/
 *.py[cod]
-*.pyo
-
-# Archivos de logs
+*.sqlite3
 *.log
 
-# Configuración de PyCharm (opcional, si no quieres subirla)
-.idea/
+# Virtual environments
+.venv/
+env/
+ENV/
 
-# Archivos del sistema
+# Django stuff:
+*.pot
+*.pyc
+db.sqlite3
+*.mo
+
+# VSCode
+.vscode/
+
+# macOS
 .DS_Store
 
-# Archivos de Credenciales
+# Docker
+*.pid
+*.seed
+*.bak
+*.swp
+*.swo
+*.orig
+
+# Static & media (si generas estáticos fuera del repositorio)
+staticfiles/
+media/
+
+# Secret files
 .env
+.env.*
+
+# PyCharm
+.idea/
+
+# Coverage reports
+htmlcov/
+.coverage
+
+# Migrations (opcional si no quieres subirlas aún)
+# **/migrations/*.py
+# **/migrations/*.pyc
+# !**/migrations/__init__.py
