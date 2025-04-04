@@ -10,6 +10,17 @@ from django.utils.timezone import now
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+# Documentación
+from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
+
+@extend_schema(
+    tags=["Criptos"],
+    summary="Listar criptomonedas",
+    responses={
+        200: CriptoSerializer(many=True),
+        401: OpenApiResponse(description="No autenticado")
+    },
+)
 class CriptoListView(ListAPIView):
     serializer_class = CriptoSerializer
     permission_classes = [IsAuthenticated]
@@ -17,6 +28,15 @@ class CriptoListView(ListAPIView):
     def get_queryset(self):
         return Cripto.objects.all().order_by('name')
 
+@extend_schema(
+    tags=["Criptos"],
+    summary="Actualizar precios desde CoinGecko",
+    responses={
+        200: CriptoSerializer(many=True),
+        401: OpenApiResponse(description="No autenticado"),
+        500: OpenApiResponse(description="Error al conectar con CoinGecko")
+    },
+)
 class CriptoUpdateView(APIView):
     permission_classes = [IsAuthenticated]
 
