@@ -1,22 +1,25 @@
 # 💸 Zenkoo - App de Ahorro Personal
 
-Zenkoo es una aplicación web para gestionar tus finanzas personales, siguiendo el método **Kakeibo** y con integración básica de criptomonedas. Desarrollada como proyecto final del CFGS DAW en Ilerna.
+Zenkoo es una aplicación web para gestionar tus finanzas personales, basada en el método **Kakeibo**. Permite registrar ingresos, gastos, metas de ahorro y reflexiones personales. Además, integra precios en tiempo real de criptomonedas populares (BTC, ETH, USDT) mediante CoinGecko y WebSockets.
+
+🧠 Proyecto final del **Ciclo Formativo de Grado Superior en Desarrollo de Aplicaciones Web** (DAW) en Ilerna.
 
 🔗 [Repositorio del frontend](https://github.com/AlbertClemente/zenkoo-frontend)
 
-## 🛠️ Tecnologías
+---
 
-- Backend: **Django + Django REST Framework**
-- Base de datos: **PostgreSQL**
-- Contenedores: **Docker + docker-compose**
-- Otros: **Gunicorn**, **Uvicorn**, **ASGI**, **WebSockets**
+## 🛠️ Tecnologías utilizadas
 
-## 🚀 Requisitos
+- **Django** + **Django REST Framework** (API REST)
+- **DRF Spectacular** (Documentación OpenAPI / Swagger)
+- **PostgreSQL** (BD relacional con UUID como PK)
+- **Docker** + **docker-compose** (contenedores)
+- **Gunicorn** + **Uvicorn** (servidor WSGI/ASGI)
+- **Django Channels** + **Daphne** (WebSockets en producción)
 
-- Docker
-- Docker Compose
+---
 
-## 🔧 Configuración
+## 🔧 Configuración rápida
 
 1. Clona el repositorio:
 
@@ -25,7 +28,7 @@ git clone https://github.com/tuusuario/zenkoo-backend.git
 cd zenkoo-backend
 ```
 
-2. Clona el repositorio:
+2. Crea un archivo .env:
 
 ```bash
 POSTGRES_DB=zenkoo
@@ -43,7 +46,7 @@ docker-compose up --build
 ```
 El backend estará disponible en http://localhost:8000.
 
-## 👤 Superusuario
+## 👤 Superusuario por defecto
 
 Al iniciar, se crea automáticamente un usuario administrador con las siguientes credenciales por defecto (configurables por entorno):
 
@@ -52,22 +55,39 @@ Al iniciar, se crea automáticamente un usuario administrador con las siguientes
 
 Puedes cambiarlos modificando las variables en el .env o en el script de creación automática.
 
-## 🧪 Tests
+## 📚 Documentación API
+
+Zenkoo cuenta con documentación completa mediante Swagger y drf-spectacular, incluyendo:
+
+- Ejemplos de respuesta (200, 201, 204)
+- Errores comunes (400, 401, 403, 404)
+- WebSocket documentado para precios en tiempo real
+
+## 🧪 Ejecutar tests
 
 ```bash
 docker-compose exec web python manage.py test
 ```
 
-## 📂 Estructura básica
+## 📂 Estructura del proyecto
 
 ```bash
 zenkoo-backend/
 │
-├── backend/                # Configuración principal de Django
-├── savings/                # App principal: usuarios, gastos, ingresos, ahorro
-├── staticfiles/            # Archivos estáticos recogidos
-├── Dockerfile              # Imagen del backend
-├── docker-compose.yml      # Orquestación de servicios
-├── requirements.txt        # Archivo con los paquetes necesarios para el backend / Docker
-└── .env                    # Variables de entorno (no subidos al repo)
+├── backend/                # Configuración principal del proyecto Django
+├── savings/                # App principal: modelos, vistas, serializers, lógica
+├── staticfiles/            # Archivos estáticos recopilados
+├── docker-compose.yml      # Orquestación de servicios con Docker
+├── Dockerfile              # Imagen del backend con Daphne, Uvicorn y Gunicorn
+├── .env                    # Variables de entorno (excluidas del repo)
+├── requirements.txt        # Dependencias de Python
+├── API_Zenkoo.md           # Documentación manual de la API
+└── README.md               # Este archivo
+```
+## 🌐 WebSocket en tiempo real
+
+Zenkoo actualiza automáticamente los precios de BTC, ETH y USDT cada vez que se llama al endpoint /api/criptos/update/, enviando el nuevo precio a través del canal WebSocket:
+
+```bash
+ws://localhost:8000/ws/criptos/
 ```
