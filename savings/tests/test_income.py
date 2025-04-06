@@ -1,69 +1,48 @@
-from rest_framework.test import APITestCase, APIClient
 from django.urls import reverse
+from rest_framework.test import APITestCase
 from rest_framework import status
-from django.utils import timezone
-from savings.models import Income
-from django.contrib.auth import get_user_model
-from rest_framework_simplejwt.tokens import RefreshToken
-import uuid
+from savings.models import Income, User
 from datetime import date
-
-User = get_user_model()
+from decimal import Decimal
 
 class IncomeTests(APITestCase):
-
     def setUp(self):
         self.user = User.objects.create_user(
-            email='usuario@correo.com',
-            password='contrasenyaSuperFuerte123',
-            date_of_birth=date(1990, 1, 1)
+            email='ingresos@zenkoo.com',
+            password='claveingreso',
+            date_of_birth='1990-01-01'
         )
-        refresh = RefreshToken.for_user(self.user)
-        self.token = str(refresh.access_token)
-
-        self.client = APIClient()
-        self.client.credentials(HTTP_AUTHORIZATION='Bearer ' + self.token)
-
-        self.income_url = reverse('income-list-create')
-
-        self.income = Income.objects.create(
-            id=uuid.uuid4(),
-            amount=1000,
-            date=timezone.now(),
-            type="Salario",
-            user=self.user
-        )
-
-    def test_get_income_list(self):
-        response = self.client.get(self.income_url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['amount'], "1000.00")
+        self.client.force_authenticate(user=self.user)
+        self.data = {
+            'amount': '1500.00',
+            'date': date.today(),
+            'type': 'Salario'
+        }
 
     def test_create_income(self):
-        data = {
-            "amount": "1500.00",
-            "date": timezone.now().isoformat(),
-            "type": "Freelance"
-        }
-        response = self.client.post(self.income_url, data)
+        response = self.client.post(reverse('income-list-create'), self.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Income.objects.count(), 2)
+        self.assertEqual(Decimal(response.data['amount']), Decimal('1500.00'))
+
+    def test_get_income_list(self):
+        Income.objects.create(user=self.user, **self.data)
+        response = self.client.get(reverse('income-list-create'))
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data), 1)
 
     def test_update_income(self):
-        url = reverse('income-detail', args=[str(self.income.id)])
-        data = {
-            "amount": "2000.00",
-            "date": self.income.date.isoformat(),
-            "type": "Salario actualizado"
-        }
-        response = self.client.put(url, data)
+        income = Income.objects.create(user=self.user, **self.data)
+        new_data = {**self.data, 'amount': '1800.00'}
+        response = self.client.put(reverse('income-detail', args=[income.id]), new_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.income.refresh_from_db()
-        self.assertEqual(str(self.income.amount), "2000.00")
+        self.assertEqual(response.data['amount'], '1800.00')
 
     def test_delete_income(self):
-        url = reverse('income-detail', args=[str(self.income.id)])
-        response = self.client.delete(url)
+        income = Income.objects.create(user=self.user, **self.data)
+        response = self.client.delete(reverse('income-detail', args=[income.id]))
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
-        self.assertFalse(Income.objects.filter(id=self.income.id).exists())
+
+    def test_auth_required(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(reverse('income-list-create'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)

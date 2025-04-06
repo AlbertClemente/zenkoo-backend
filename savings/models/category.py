@@ -11,5 +11,8 @@ class Category(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='categories')
     parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='subcategories')
 
+    class Meta:
+        unique_together = ('user', 'name', 'type')
+
     def __str__(self):
         return self.name

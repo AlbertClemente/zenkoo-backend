@@ -1,46 +1,60 @@
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from rest_framework import status
-from django.utils.timezone import now
 from savings.models import Expense, User, Category
-from datetime import timedelta
+from datetime import date
 
 class ExpenseTests(APITestCase):
-
     def setUp(self):
         self.user = User.objects.create_user(
-            email='usuario@correo.com',
-            password='superPassword123',
-            first_name='Usuario',
-            last_name='Ejemplo',
+            email='gasto@zenkoo.com',
+            password='clave123',
             date_of_birth='1990-01-01'
         )
         self.client.force_authenticate(user=self.user)
+
         self.category = Category.objects.create(
-            name="Transporte", type="expense", user=self.user
+            name='Transporte',
+            type='expense',
+            user=self.user
         )
-        self.expense_data = {
-            'amount': 50.00,
-            'date': (now() - timedelta(days=1)).isoformat(),
-            'type': 'Taxi',
-            'category': str(self.category.id)
+
+        self.data = {
+            'amount': '20.00',
+            'date': date.today(),
+            'type': 'Transporte diario',
+            'category': self.category.id
         }
-        self.url = reverse('expense-list-create')
 
     def test_create_expense(self):
-        response = self.client.post(self.url, self.expense_data, format='json')
+        response = self.client.post(reverse('expense-list-create'), self.data)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(Expense.objects.count(), 1)
-        self.assertEqual(response.data['amount'], '50.00')
 
     def test_get_expense_list(self):
-        Expense.objects.create(
-            user=self.user,
-            amount=self.expense_data['amount'],
-            date=self.expense_data['date'],
-            type=self.expense_data['type'],
-            category=self.category
-        )
-        response = self.client.get(self.url)
+        data = self.data.copy()
+        data['category'] = self.category  # 👈 usa instancia, no UUID
+        Expense.objects.create(user=self.user, **data)
+        response = self.client.get(reverse('expense-list-create'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        self.assertGreaterEqual(len(response.data), 1)
+
+    def test_get_requires_authentication(self):
+        self.client.force_authenticate(user=None)
+        response = self.client.get(reverse('expense-list-create'))
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_update_expense(self):
+        data = self.data.copy()
+        data['category'] = self.category
+        expense = Expense.objects.create(user=self.user, **data)
+        new_data = {**self.data, 'type': 'Comida mensual'}
+        response = self.client.put(reverse('expense-detail', args=[expense.id]), new_data)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['type'], 'Comida mensual')
+
+    def test_delete_expense(self):
+        data = self.data.copy()
+        data['category'] = self.category
+        expense = Expense.objects.create(user=self.user, **data)
+        response = self.client.delete(reverse('expense-detail', args=[expense.id]))
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)

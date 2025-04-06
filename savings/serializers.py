@@ -90,6 +90,20 @@ class CategorySerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
+    def validate(self, data):
+        user = self.context['request'].user
+        name = data.get('name')
+        type_ = data.get('type')
+        instance = getattr(self, 'instance', None)
+
+        qs = Category.objects.filter(user=user, name=name, type=type_)
+        if instance:
+            qs = qs.exclude(pk=instance.pk)
+
+        if qs.exists():
+            raise serializers.ValidationError("Ya existe una categoría con ese nombre y tipo.")
+        return data
+
 class NotificationSerializer(serializers.ModelSerializer):
     """Serializer para mostrar y gestionar notificaciones del usuario"""
 
