@@ -16,6 +16,7 @@ Zenkoo es una aplicación web para gestionar tus finanzas personales, basada en 
 - **Docker** + **docker-compose** (contenedores)
 - **Gunicorn** + **Uvicorn** (servidor WSGI/ASGI)
 - **Django Channels** + **Daphne** (WebSockets en producción)
+- **Pytest + Coverage**
 
 ---
 
@@ -46,6 +47,8 @@ docker-compose up --build
 ```
 El backend estará disponible en http://localhost:8000.
 
+---
+
 ## 👤 Superusuario por defecto
 
 Al iniciar, se crea automáticamente un usuario administrador con las siguientes credenciales por defecto (configurables por entorno):
@@ -55,19 +58,49 @@ Al iniciar, se crea automáticamente un usuario administrador con las siguientes
 
 Puedes cambiarlos modificando las variables en el .env o en el script de creación automática.
 
+---
+
+## 🔐 Endpoints de Autenticación
+
+- Registro: POST /api/users/register/
+- Login (JWT): POST /api/users/login/
+
+Recibirás un token access y refresh. Usa el access token para autenticarte:
+
+```bash
+Authorization: Bearer <access_token>
+```
+
+---
+
 ## 📚 Documentación API
 
-Zenkoo cuenta con documentación completa mediante Swagger y drf-spectacular, incluyendo:
+Zenkoo cuenta con documentación completa mediante Swagger y DRF-Spectacular, incluyendo:
 
 - Ejemplos de respuesta (200, 201, 204)
 - Errores comunes (400, 401, 403, 404)
 - WebSocket documentado para precios en tiempo real
 
+---
+
 ## 🧪 Ejecutar tests
 
+Para ejecutar todos los tests:
+
 ```bash
-docker-compose exec web python manage.py test
+docker-compose exec web pytest
 ```
+
+Incluye cobertura de:
+- Ingresos (Income)
+- Gastos (Expense)
+- Metas de ahorro (SavingGoal)
+- Categorías (Category)
+- Notificaciones (Notification)
+- Reflexiones (Reflection)
+- Criptomonedas (Cripto)
+
+---
 
 ## 📂 Estructura del proyecto
 
@@ -84,6 +117,9 @@ zenkoo-backend/
 ├── API_Zenkoo.md           # Documentación manual de la API
 └── README.md               # Este archivo
 ```
+
+---
+
 ## 🌐 WebSocket en tiempo real
 
 Zenkoo actualiza automáticamente los precios de BTC, ETH y USDT cada vez que se llama al endpoint /api/criptos/update/, enviando el nuevo precio a través del canal WebSocket:
