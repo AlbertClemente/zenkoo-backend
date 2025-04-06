@@ -49,7 +49,14 @@ class IncomeSerializer(serializers.ModelSerializer):
             'id', 'amount', 'date', 'type', 'created_at', 'updated_at', 'user'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
-
+def test_update_saving_goal(self):
+    goal = SavingGoal.objects.create(user=self.user, **self.data)
+    response = self.client.patch(
+        reverse('savinggoal-detail', args=[goal.id]),
+        {'status': 'finalizado'}
+    )
+    self.assertEqual(response.status_code, status.HTTP_200_OK)
+    self.assertEqual(response.data['status'], 'finalizado')
 class ExpenseSerializer(serializers.ModelSerializer):
     """Serializer para registrar y ver gastos del usuario"""
 

@@ -18,10 +18,11 @@ class NotificationTests(APITestCase):
 
     def test_get_notifications(self):
         response = self.client.get(reverse('notification-list-create'))
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        assert response.status_code == status.HTTP_200_OK
+        assert len(response.data) >= 1
 
     def test_mark_notification_as_read(self):
         url = reverse('notification-mark-read', kwargs={'pk': self.notification.pk})
         response = self.client.patch(url)
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(response.data['is_read'])
+        assert response.status_code == status.HTTP_200_OK
+        assert response.data['is_read'] is True
