@@ -1,5 +1,8 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from savings.models import Notification
+from asgiref.sync import sync_to_async
+from uuid import UUID
 
 class NotificationConsumer(AsyncWebsocketConsumer):
     async def connect(self):
@@ -24,13 +27,21 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         print(f"Mensaje recibido en {self.group_name}: {text_data}")
 
         data = json.loads(text_data)
+        message = data.get("message")
+
+        # Guardar en la base de datos
+        await sync_to_async(Notification.objects.create)(
+            user_id=UUID(self.user_id),
+            message=message,
+            is_read=False
+        )
 
         # Enviar mensaje a todos en el grupo usando `send_notification`
         await self.channel_layer.group_send(
             self.group_name,
             {
                 "type": "send_notification",
-                "message": data.get("message"),
+                "message": message,
             }
         )
 

@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from savings.models import Notification
 from savings.serializers import NotificationSerializer
+from rest_framework.decorators import api_view, permission_classes
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -96,3 +97,18 @@ class NotificationDeleteView(DestroyAPIView):
 
     def get_queryset(self):
         return self.queryset.filter(user=self.request.user)
+
+@extend_schema(
+    tags=["Notifications"],
+    summary="Contar notificaciones no leídas",
+    description="Devuelve el número de notificaciones no leídas del usuario autenticado.",
+    responses={
+        200: OpenApiResponse(description="Número de notificaciones no leídas"),
+        401: OpenApiResponse(description="No autenticado")
+    }
+)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def unread_notifications_count(request):
+    count = Notification.objects.filter(user=request.user, is_read=False).count()
+    return Response({"unread_count": count})
