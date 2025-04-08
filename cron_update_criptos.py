@@ -6,8 +6,8 @@ from dotenv import load_dotenv
 # Cargar variables desde .env
 load_dotenv()
 
-LOGIN_URL = "http://127.0.0.1:8000/api/users/login/"
-UPDATE_URL = "http://127.0.0.1:8000/api/criptos/update/"
+LOGIN_URL = "http://web:8000/api/users/login/"
+UPDATE_URL = "http://web:8000/api/criptos/update/"
 
 email = os.getenv("ZENKOO_CRON_EMAIL")
 password = os.getenv("ZENKOO_CRON_PASSWORD")
@@ -25,6 +25,8 @@ token_response = requests.post(LOGIN_URL, json=credentials)
 if token_response.status_code != 200:
     print(f"{timestamp} [ERROR] No se pudo obtener token: {token_response.text}")
     exit(1)
+
+print(f"{timestamp} [INFO] Haciendo login con {email} en {LOGIN_URL}")
 
 access_token = token_response.json().get("access")
 headers = {"Authorization": f"Bearer {access_token}"}

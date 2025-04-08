@@ -1,0 +1,2 @@
+# crontabfile
+* * * * * cd /app && /usr/local/bin/python cron_update_criptos.py >> /var/log/cron_criptos.log 2>&1
