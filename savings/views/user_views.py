@@ -19,6 +19,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
 )
 class UserRegisterView(APIView):
     """Permite a nuevos usuarios registrarse"""
+    serializer_class = UserRegisterSerializer
 
     def post(self, request):
         serializer = UserRegisterSerializer(data=request.data)
@@ -70,6 +71,7 @@ class UserRegisterView(APIView):
 )
 class UserProfileView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = UserSerializer
 
     def get(self, request):
         serializer = UserSerializer(request.user)

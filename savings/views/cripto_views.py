@@ -39,6 +39,7 @@ class CriptoListView(ListAPIView):
 )
 class CriptoUpdateView(APIView):
     permission_classes = [IsAuthenticated]
+    serializer_class = CriptoSerializer
 
     def post(self, request):
         url = 'https://api.coingecko.com/api/v3/simple/price'

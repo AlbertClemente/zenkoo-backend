@@ -1,4 +1,4 @@
-from rest_framework.generics import ListCreateAPIView, RetrieveAPIView,  UpdateAPIView, DestroyAPIView
+from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework import status
@@ -42,25 +42,6 @@ class NotificationListCreateView(ListCreateAPIView):
 
 @extend_schema(
     tags=["Notifications"],
-    summary="Obtener notificación por ID",
-    description="Devuelve el detalle de una notificación específica del usuario autenticado.",
-    responses={
-        200: NotificationSerializer,
-        401: OpenApiResponse(description="No autenticado"),
-        403: OpenApiResponse(description="No autorizado"),
-        404: OpenApiResponse(description="No encontrada")
-    },
-)
-class NotificationRetrieveView(RetrieveAPIView):
-    serializer_class = NotificationSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Notification.objects.all()
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-@extend_schema(
-    tags=["Notifications"],
     summary="Marcar notificación como leída",
     description="Marca una notificación como leída si pertenece al usuario autenticado.",
     responses={
@@ -86,20 +67,6 @@ class NotificationMarkReadView(UpdateAPIView):
 
 @extend_schema(
     tags=["Notifications"],
-    summary="Eliminar notificación",
-    description="Elimina una notificación por ID si pertenece al usuario autenticado.",
-    responses={204: None},
-)
-class NotificationDeleteView(DestroyAPIView):
-    serializer_class = NotificationSerializer
-    permission_classes = [IsAuthenticated]
-    queryset = Notification.objects.all()
-
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user)
-
-@extend_schema(
-    tags=["Notifications"],
     summary="Contar notificaciones no leídas",
     description="Devuelve el número de notificaciones no leídas del usuario autenticado.",
     responses={
@@ -112,3 +79,22 @@ class NotificationDeleteView(DestroyAPIView):
 def unread_notifications_count(request):
     count = Notification.objects.filter(user=request.user, is_read=False).count()
     return Response({"unread_count": count})
+
+@extend_schema(
+    tags=["Notifications"],
+    summary="Obtener o eliminar notificación",
+    description="Devuelve el detalle de una notificación o la elimina si pertenece al usuario autenticado.",
+    responses={
+        200: NotificationSerializer,
+        204: OpenApiResponse(description="Eliminada correctamente"),
+        401: OpenApiResponse(description="No autenticado"),
+        403: OpenApiResponse(description="No autorizado"),
+        404: OpenApiResponse(description="No encontrada"),
+    },
+)
+class NotificationRetrieveDeleteView(RetrieveDestroyAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Notification.objects.filter(user=self.request.user)
