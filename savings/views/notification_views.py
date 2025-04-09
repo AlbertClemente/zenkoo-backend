@@ -1,3 +1,4 @@
+from rest_framework.views import APIView
 from rest_framework.generics import ListCreateAPIView, UpdateAPIView, RetrieveDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -98,3 +99,20 @@ class NotificationRetrieveDeleteView(RetrieveDestroyAPIView):
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user)
+
+@extend_schema(
+    tags=["Notifications"],
+    summary="Eliminar todas las notificaciones",
+    description="Elimina todas las notificaciones del usuario autenticado.",
+    responses={
+        204: OpenApiResponse(description="Todas las notificaciones eliminadas"),
+        401: OpenApiResponse(description="No autenticado")
+    }
+)
+class NotificationDeleteAllView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request):
+        Notification.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+

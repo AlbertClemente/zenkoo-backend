@@ -11,7 +11,7 @@ from .views.expense_views import ExpenseListCreateView, ExpenseDetailView
 from .views.category_views import CategoryListCreateView, CategoryRetrieveUpdateDestroyView
 from .views.savinggoal_views import SavingGoalListCreateView, SavingGoalDetailView
 from .views.reflection_views import ReflectionListCreateView, ReflectionRetrieveUpdateDestroyView
-from .views.notification_views import NotificationListCreateView, NotificationRetrieveDeleteView, NotificationMarkReadView, unread_notifications_count
+from .views.notification_views import NotificationListCreateView, NotificationDeleteAllView, NotificationRetrieveDeleteView, NotificationMarkReadView, unread_notifications_count
 from .views.cripto_views import CriptoListView, CriptoUpdateView
 
 urlpatterns = [
@@ -30,6 +30,7 @@ urlpatterns = [
     path('reflections/', ReflectionListCreateView.as_view(), name='reflection-list-create'),
     path('reflections/<uuid:pk>/', ReflectionRetrieveUpdateDestroyView.as_view(), name='reflection-detail'),
     path('notifications/', NotificationListCreateView.as_view(), name='notification-list-create'),
+    path('notifications/delete/all/', NotificationDeleteAllView.as_view(), name='notification-delete-all'),
     path('notifications/<uuid:pk>/', NotificationRetrieveDeleteView.as_view(), name='notification-detail-delete'),
     path('notifications/<uuid:pk>/read/', NotificationMarkReadView.as_view(), name='notification-mark-read'),
     path('notifications/unread/count/', unread_notifications_count, name='notification-unread-count'),

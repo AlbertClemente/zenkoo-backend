@@ -808,6 +808,20 @@ paths:
           description: No autorizado
         '404':
           description: No encontrada
+  /api/notifications/delete/all/:
+    delete:
+      operationId: notifications_delete_all_destroy
+      description: Elimina todas las notificaciones del usuario autenticado.
+      summary: Eliminar todas las notificaciones
+      tags:
+      - Notifications
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: Todas las notificaciones eliminadas
+        '401':
+          description: No autenticado
   /api/notifications/unread/count/:
     get:
       operationId: notifications_unread_count_retrieve
