@@ -147,16 +147,17 @@ CHANNEL_LAYERS = {
 
 AUTH_USER_MODEL = 'savings.User' #Usar modelo de usuario personalizado definido en la app Savings
 
-# JWT (JSON WEB TOKEN)
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
+        'rest_framework_simplejwt.authentication.JWTAuthentication', # JWT (JSON WEB TOKEN)
     ),
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
         "rest_framework.renderers.BrowsableAPIRenderer",
     ],
-    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema", # DRF SPECTACULAR
+    'DEFAULT_PAGINATION_CLASS': 'savings.pagination.DefaultPagination', # Paginación por defecto
+    'PAGE_SIZE': 10,  # Valor por defecto de paginación si no se sobreescribe
 }
 
 SIMPLE_JWT = {

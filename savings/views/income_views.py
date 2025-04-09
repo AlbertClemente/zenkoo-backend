@@ -2,6 +2,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Income
 from savings.serializers import IncomeSerializer
+from ..pagination import IncomePagination
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -29,6 +30,7 @@ class IncomeListCreateView(ListCreateAPIView):
     """Lista y crea ingresos asociados al usuario autenticado"""
     serializer_class = IncomeSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = IncomePagination
 
     def get_queryset(self):
         return Income.objects.filter(user=self.request.user).order_by('-date')

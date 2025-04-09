@@ -2,6 +2,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Expense
 from savings.serializers import ExpenseSerializer
+from ..pagination import ExpensePagination
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -31,6 +32,7 @@ class ExpenseListCreateView(ListCreateAPIView):
     """Lista y crea gastos asociados al usuario autenticado"""
     serializer_class = ExpenseSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = ExpensePagination
 
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user).order_by('-date')

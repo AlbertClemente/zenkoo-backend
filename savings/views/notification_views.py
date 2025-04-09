@@ -6,6 +6,7 @@ from rest_framework import status
 from savings.models import Notification
 from savings.serializers import NotificationSerializer
 from rest_framework.decorators import api_view, permission_classes
+from ..pagination import NotificationPagination
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -34,6 +35,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
 class NotificationListCreateView(ListCreateAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [IsAuthenticated]
+    pagination_class = NotificationPagination
 
     def get_queryset(self):
         return Notification.objects.filter(user=self.request.user).order_by('-created_at')
