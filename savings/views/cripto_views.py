@@ -4,9 +4,9 @@ from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
-from savings.models import Cripto
+from savings.models import User, Cripto, Notification
 from savings.serializers import CriptoSerializer
-from django.utils.timezone import now
+from django.utils.timezone import now, timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
@@ -71,7 +71,12 @@ class CriptoUpdateView(APIView):
                 print(f"[ERROR] Conversión Decimal fallida: {price} -> {e}")
                 continue
 
-            cripto, _ = Cripto.objects.update_or_create(
+            # Buscar cripto antes
+            old_cripto = Cripto.objects.filter(symbol=datos['symbol']).first()
+            old_price = old_cripto.price if old_cripto else None
+
+            # Actualizar o crear
+            cripto, created = Cripto.objects.update_or_create(
                 symbol=datos['symbol'],
                 defaults={
                     'name': nombre,
@@ -80,20 +85,55 @@ class CriptoUpdateView(APIView):
                 }
             )
 
-            # Emitimos por WebSocket
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-                "cripto_prices",
-                {
-                    "type": "send_cripto_update",
-                    "data": {
-                        "name": cripto.name,
-                        "symbol": cripto.symbol,
-                        "price": str(cripto.price),
-                        "timestamp": str(cripto.timestamp),
-                    },
-                }
-            )
+            # Si el precio ha variado a partir de un 1% o se ha creado nueva cripto
+            if created or (
+                    old_price is not None and abs((price_decimal - old_price) / old_price) >= Decimal("0.01")
+            ):
+                # Comprobar antes que nada que Channels está bien configurado
+                channel_layer = get_channel_layer()
+                if channel_layer is None:
+                    print("[ERROR] channel_layer es None, ¿Channels está bien configurado?")
+                    return Response({'[ERROR]': 'No se pudo enviar notificación WebSocket'}, status=500)
+
+                # Enviaremos notificación a todos los usuarios suscritos, menos al del cron
+                usuarios_destino = User.objects.exclude(email="cronjob@zenkoo.com")
+
+                for user in usuarios_destino:
+                    # Evitamos notificar el mismo precio
+                    ya_notificado = Notification.objects.filter(
+                        user=user,
+                        type="cripto",
+                        message__icontains=cripto.name,
+                        created_at__gte=now() - timedelta(hours=1)
+                    ).exists()
+
+                    if ya_notificado:
+                        print(f"[SKIP] Ya se notificó {cripto.name} a {user.email} en la última hora.")
+                        continue
+
+                    # Crear la notificación para ese user
+                    notification = Notification.objects.create(
+                        user=user,
+                        message=f"{cripto.name} está en {cripto.price}€ 🎉",
+                        type="cripto"
+                    )
+
+                    # Emitir la notificación por WebSocket
+                    print(f"[WS DEBUG] Enviando notificación a grupo user_{str(user.id)}")
+                    async_to_sync(channel_layer.group_send)(
+                        f"user_{str(user.id)}",
+                        {
+                            "type": "send_notification",
+                            "data": {
+                                "id": str(notification.id),
+                                "message": notification.message,
+                                "is_read": notification.is_read,
+                                "created_at": notification.created_at.isoformat(),
+                                "user": str(notification.user_id),
+                                "type": notification.type
+                            }
+                        }
+                    )
 
             resultados.append(CriptoSerializer(cripto).data)
 

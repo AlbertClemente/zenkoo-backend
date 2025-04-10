@@ -28,25 +28,34 @@ class NotificationConsumer(AsyncWebsocketConsumer):
 
         data = json.loads(text_data)
         message = data.get("message")
+        notification_type = data.get("type", "general")
 
         # Guardar en la base de datos
-        await sync_to_async(Notification.objects.create)(
+        notification = await sync_to_async(Notification.objects.create)(
             user_id=UUID(self.user_id),
             message=message,
-            is_read=False
+            is_read=False,
+            type=notification_type
         )
+
+        # Serializar
+        notification_data = {
+            "id": str(notification.id),
+            "message": notification.message,
+            "is_read": notification.is_read,
+            "created_at": notification.created_at.isoformat(),
+            "user": str(notification.user_id),
+            "type": notification_type
+        }
 
         # Enviar mensaje a todos en el grupo usando `send_notification`
         await self.channel_layer.group_send(
             self.group_name,
             {
                 "type": "send_notification",
-                "message": message,
+                "data": notification_data  # nota: pasa todo como `data`
             }
         )
 
     async def send_notification(self, event):
-        await self.send(text_data=json.dumps({
-            "type": "new_notification",  # Para el hook en el front!
-            "message": event["message"]
-        }))
+        await self.send(text_data=json.dumps(event["data"]))
