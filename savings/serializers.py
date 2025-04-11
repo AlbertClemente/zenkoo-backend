@@ -21,6 +21,9 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'first_name', 'last_name', 'email', 'password', 'profile_picture', 'date_of_birth'
         ]
+        extra_kwargs = {
+            'profile_picture': {'required': False, 'allow_blank': True}
+        }
 
     def create(self, validated_data):
         user = User.objects.create_user(
