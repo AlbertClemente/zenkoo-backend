@@ -3,8 +3,8 @@
 echo "Esperando a que la base de datos esté disponible..."
 python manage.py wait_for_db
 
-echo "Creando migraciones..."
-python manage.py makemigrations --noinput
+# echo "Creando migraciones..."
+# python manage.py makemigrations --noinput
 
 echo "Aplicando migraciones..."
 python manage.py migrate
