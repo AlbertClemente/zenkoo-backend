@@ -31,6 +31,9 @@ else:
     print("Usuario cron ya existe.")
 EOF
 
+echo "Entrenando modelo Kakeibo inicial..."
+python manage.py shell -c "from savings.ml.train import train_model; train_model()"
+
 echo "Iniciando cron..."
 cron
 
