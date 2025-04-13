@@ -123,6 +123,7 @@ USE_TZ = True
 # GUARDAR ARCHIVOS ESTÁTIDOS EN LA APP: /app/staticfiles
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'savings/static')]
 
 # Añadir en producción (sirviendo estáticos)
 if not DEBUG:

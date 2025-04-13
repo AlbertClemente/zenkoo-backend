@@ -38,4 +38,5 @@ echo "Iniciando cron..."
 cron
 
 # Ejecuta el proceso principal (gunicorn en este caso)
+echo "🚀 Lanzando servidor..."
 exec "$@"

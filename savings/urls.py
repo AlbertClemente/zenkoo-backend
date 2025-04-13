@@ -13,7 +13,8 @@ from .views.savinggoal_views import SavingGoalListCreateView, SavingGoalDetailVi
 from .views.reflection_views import ReflectionListCreateView, ReflectionRetrieveUpdateDestroyView
 from .views.notification_views import NotificationListCreateView, NotificationDeleteAllView, NotificationRetrieveDeleteView, NotificationMarkReadView, unread_notifications_count
 from .views.cripto_views import CriptoListView, CriptoUpdateView
-
+from .views.admin import ModelInfoView
+from .views.admin import RetrainModelView
 urlpatterns = [
     path('users/register/', UserRegisterView.as_view(), name='user-register'),
     path('users/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -36,4 +37,6 @@ urlpatterns = [
     path('notifications/unread/count/', unread_notifications_count, name='notification-unread-count'),
     path('criptos/', CriptoListView.as_view(), name='cripto-list'),
     path('criptos/update/', CriptoUpdateView.as_view(), name='cripto-update'),
+    path('admin/model-info/', ModelInfoView.as_view(), name='model-info'),
+    path("ml/retrain/", RetrainModelView.as_view(), name="retrain-model"),
 ]

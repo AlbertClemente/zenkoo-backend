@@ -5,14 +5,18 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Instala cron
-RUN apt-get update && apt-get install -y cron
+# Instala cron y dependencias para Pillow o similares
+RUN apt-get update && apt-get install -y cron build-essential libpq-dev
 
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
+# Recolecta los archivos estáticos
+RUN python manage.py collectstatic --noinput
+
+# Copia el entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
