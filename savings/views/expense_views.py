@@ -37,6 +37,16 @@ class ExpenseListCreateView(ListCreateAPIView):
     def get_queryset(self):
         return Expense.objects.filter(user=self.request.user).order_by('-date')
 
+    def get_serializer_context(self):
+        return {'request': self.request}
+
+    def post(self, request, *args, **kwargs):
+        print("Payload recibido en /api/expenses/:", request.data)
+        serializer = self.get_serializer(data=request.data)
+        if not serializer.is_valid():
+            print("🔴 Errores del serializer:", serializer.errors)
+        return super().post(request, *args, **kwargs)
+
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 

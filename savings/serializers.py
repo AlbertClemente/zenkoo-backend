@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import User, Cripto, Income, Expense, SavingGoal, Reflection, Category, Notification
+from .ml.predict import predict_category # IA Categorización
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer para mostrar datos de usuario (sin contraseña)"""
@@ -10,7 +11,6 @@ class UserSerializer(serializers.ModelSerializer):
             'is_active', 'is_staff'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
-
 
 class UserRegisterSerializer(serializers.ModelSerializer):
     """Serializer para registrar nuevos usuarios"""
@@ -52,16 +52,12 @@ class IncomeSerializer(serializers.ModelSerializer):
             'id', 'amount', 'date', 'type', 'created_at', 'updated_at', 'user'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
-def test_update_saving_goal(self):
-    goal = SavingGoal.objects.create(user=self.user, **self.data)
-    response = self.client.patch(
-        reverse('savinggoal-detail', args=[goal.id]),
-        {'status': 'finalizado'}
-    )
-    self.assertEqual(response.status_code, status.HTTP_200_OK)
-    self.assertEqual(response.data['status'], 'finalizado')
+
+
 class ExpenseSerializer(serializers.ModelSerializer):
-    """Serializer para registrar y ver gastos del usuario"""
+    print("🔁 Cargando ExpenseSerializer actualizado")
+
+    category = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = Expense
@@ -69,6 +65,27 @@ class ExpenseSerializer(serializers.ModelSerializer):
             'id', 'amount', 'date', 'type', 'created_at', 'updated_at', 'user', 'category'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def validate_category(self, value):
+        request = self.context.get('request')
+        user = request.user if request else None
+
+        if not value:
+            return None  # Permitimos categoría vacía
+
+        if user:
+            category, _ = Category.objects.get_or_create(
+                name=value.strip(),
+                type='expense',
+                user=user
+            )
+            return category
+
+        raise serializers.ValidationError("Categoría no válida.")
+
+    def create(self, validated_data):
+        print("✅ ExpenseSerializer ACTIVO")
+        return super().create(validated_data)
 
 class SavingGoalSerializer(serializers.ModelSerializer):
     """Serializer para crear, listar y actualizar metas de ahorro"""
