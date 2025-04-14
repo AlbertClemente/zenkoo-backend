@@ -88,14 +88,13 @@ class ExpenseSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 class SavingGoalSerializer(serializers.ModelSerializer):
-    """Serializer para crear, listar y actualizar metas de ahorro"""
-
     class Meta:
         model = SavingGoal
         fields = [
-            'id', 'target_amount', 'current_amount', 'deadline', 'status', 'created_at', 'updated_at', 'user'
+            'id', 'title', 'target_amount', 'current_amount', 'deadline', 'status',
+            'created_at', 'updated_at', 'user'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at', 'user', 'current_amount']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'user']
 
 class ReflectionSerializer(serializers.ModelSerializer):
     """Serializer para crear y ver reflexiones personales del usuario"""
