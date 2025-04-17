@@ -159,6 +159,7 @@ REST_FRAMEWORK = {
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema", # DRF SPECTACULAR
     'DEFAULT_PAGINATION_CLASS': 'savings.pagination.DefaultPagination', # Paginación por defecto
     'PAGE_SIZE': 10,  # Valor por defecto de paginación si no se sobreescribe
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'], # soporte para filtrar por status
 }
 
 SIMPLE_JWT = {

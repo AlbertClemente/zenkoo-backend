@@ -3,6 +3,8 @@ from rest_framework.permissions import IsAuthenticated
 from savings.models import Income
 from savings.serializers import IncomeSerializer
 from ..pagination import IncomePagination
+from django_filters.rest_framework import DjangoFilterBackend
+from ..filters.filters_incomes import IncomeFilter
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -30,6 +32,8 @@ class IncomeListCreateView(ListCreateAPIView):
     """Lista y crea ingresos asociados al usuario autenticado"""
     serializer_class = IncomeSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IncomeFilter
     pagination_class = IncomePagination
 
     def get_queryset(self):

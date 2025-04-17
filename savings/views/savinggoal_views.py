@@ -2,6 +2,8 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import SavingGoal
 from savings.serializers import SavingGoalSerializer
+from ..pagination import SavingGoalsPagination
+from django_filters.rest_framework import DjangoFilterBackend
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -31,6 +33,9 @@ class SavingGoalListCreateView(ListCreateAPIView):
     """Lista y crea metas de ahorro del usuario autenticado"""
     serializer_class = SavingGoalSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend] # usar filtros
+    filterset_fields = ['status']  # filtrar por campo status
+    pagination_class = SavingGoalsPagination
 
     def get_queryset(self):
         return SavingGoal.objects.filter(user=self.request.user).order_by('deadline')
