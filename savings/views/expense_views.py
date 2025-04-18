@@ -2,9 +2,9 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Expense
 from savings.serializers import ExpenseSerializer
-from ..pagination import ExpensePagination
+from savings.pagination import ExpensePagination
 from django_filters.rest_framework import DjangoFilterBackend
-from ..filters.filters_expenses import ExpenseFilter
+from savings.filters.filters_expenses import ExpenseFilter
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse

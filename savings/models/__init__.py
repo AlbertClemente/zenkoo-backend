@@ -6,3 +6,4 @@ from .saving_goal import SavingGoal
 from .reflection import Reflection
 from .category import Category
 from .notification import Notification
+from .monthly_plan import MonthlyPlan

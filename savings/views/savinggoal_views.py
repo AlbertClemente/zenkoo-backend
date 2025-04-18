@@ -2,7 +2,7 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import SavingGoal
 from savings.serializers import SavingGoalSerializer
-from ..pagination import SavingGoalsPagination
+from savings.pagination import SavingGoalsPagination
 from django_filters.rest_framework import DjangoFilterBackend
 
 # Documentación

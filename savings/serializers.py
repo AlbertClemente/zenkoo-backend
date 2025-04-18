@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import User, Cripto, Income, Expense, SavingGoal, Reflection, Category, Notification
+from .models import User, Cripto, Income, Expense, SavingGoal, Reflection, Category, Notification, MonthlyPlan
+
 from .ml.predict import predict_category # IA Categorización
 
 class UserSerializer(serializers.ModelSerializer):
@@ -139,3 +140,8 @@ class NotificationSerializer(serializers.ModelSerializer):
             'id', 'message', 'is_read', 'created_at', 'user'
         ]
         read_only_fields = ['id', 'created_at', 'user']
+
+class MonthlyPlanSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = MonthlyPlan
+        fields = ['id', 'month', 'reserved_savings', 'reflection', 'created_at']

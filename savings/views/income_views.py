@@ -2,9 +2,9 @@ from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIV
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Income
 from savings.serializers import IncomeSerializer
-from ..pagination import IncomePagination
+from savings.pagination import IncomePagination
 from django_filters.rest_framework import DjangoFilterBackend
-from ..filters.filters_incomes import IncomeFilter
+from savings.filters.filters_incomes import IncomeFilter
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
