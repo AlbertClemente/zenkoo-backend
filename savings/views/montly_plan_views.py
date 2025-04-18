@@ -16,22 +16,7 @@ from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResp
         summary="Resumen mensual (Kakeibo)",
         description="Devuelve los ingresos, gastos, ahorro real y ahorro reservado del mes actual, junto con la reflexión si existe.",
         responses={
-            200: OpenApiResponse(
-                description="Resumen mensual",
-                examples=[
-                    OpenApiExample(
-                        "Ejemplo de respuesta",
-                        value={
-                            "month": "2025-04",
-                            "income": 2300.00,
-                            "expense": 1950.00,
-                            "real_savings": 350.00,
-                            "reserved_savings": 200.00,
-                            "reflection": "Este mes he gastado mucho en comida fuera de casa."
-                        }
-                    )
-                ]
-            ),
+            200: MonthlyPlanSerializer,
             401: OpenApiResponse(description="No autenticado")
         }
     )
@@ -44,8 +29,8 @@ class MonthlyPlanCurrentView(generics.GenericAPIView):
         user = request.user
         today = now().date()
         month_start = today.replace(day=1)
-        month_str = month_start.strftime('%Y-%m')  # para comparar fácilmente
 
+        # Ingresos y gastos del mes
         incomes = Income.objects.filter(user=user, created_at__year=month_start.year, created_at__month=month_start.month)
         expenses = Expense.objects.filter(user=user, created_at__year=month_start.year, created_at__month=month_start.month)
 
@@ -53,16 +38,15 @@ class MonthlyPlanCurrentView(generics.GenericAPIView):
         total_expense = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
         real_savings = total_income - total_expense
 
+        # Plan mensual
         plan, _ = MonthlyPlan.objects.get_or_create(user=user, month=month_start)
 
-        return Response({
-            'month': month_str,
+        serializer = self.get_serializer(plan, context={
             'income': total_income,
             'expense': total_expense,
-            'real_savings': real_savings,
-            'reserved_savings': plan.reserved_savings,
-            'reflection': plan.reflection,
+            'real_savings': real_savings
         })
+        return Response(serializer.data)
 
 @extend_schema_view(
     post=extend_schema(
@@ -77,7 +61,7 @@ class MonthlyPlanCurrentView(generics.GenericAPIView):
         }
     )
 )
-class MonthlyPlanCreateUpdateView(generics.CreateAPIView):
+class MonthlyPlanCreateUpdateView(generics.GenericAPIView):
     serializer_class = MonthlyPlanSerializer
     permission_classes = [IsAuthenticated]
 
@@ -88,10 +72,24 @@ class MonthlyPlanCreateUpdateView(generics.CreateAPIView):
         data = request.data.copy()
         data['month'] = month_start
 
-        plan, created = MonthlyPlan.objects.get_or_create(user=user, month=month_start)
-        serializer = self.get_serializer(plan, data=data, partial=True)
+        # Obtener ingresos y gastos
+        incomes = Income.objects.filter(user=user, created_at__year=month_start.year, created_at__month=month_start.month)
+        expenses = Expense.objects.filter(user=user, created_at__year=month_start.year, created_at__month=month_start.month)
+
+        total_income = incomes.aggregate(Sum('amount'))['amount__sum'] or 0
+        total_expense = expenses.aggregate(Sum('amount'))['amount__sum'] or 0
+        real_savings = total_income - total_expense
+
+        # Obtener o crear el plan
+        plan, _ = MonthlyPlan.objects.get_or_create(user=user, month=month_start)
+
+        serializer = self.get_serializer(plan, data=data, partial=True, context={
+            'income': total_income,
+            'expense': total_expense,
+            'real_savings': real_savings
+        })
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
-        return Response(serializer.errors, status=400)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

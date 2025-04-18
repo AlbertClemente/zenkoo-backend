@@ -14,10 +14,11 @@ class SavingGoalTests(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         self.data = {
+            'title': 'Meta nueva',
             'target_amount': '5000.00',
             'current_amount': '100.00',
             'deadline': datetime.now().isoformat(),
-            'status': 'activo'
+            'status': 'active'
         }
 
     def test_create_saving_goal(self):
@@ -34,10 +35,10 @@ class SavingGoalTests(APITestCase):
         goal = SavingGoal.objects.create(user=self.user, **self.data)
         response = self.client.patch(
             reverse('savinggoal-detail', args=[goal.id]),
-            {'status': 'finalizado'}
+            {'status': 'completed'}
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data['status'], 'finalizado')
+        self.assertEqual(response.data['status'], 'completed')
 
     def test_delete_saving_goal(self):
         goal = SavingGoal.objects.create(user=self.user, **self.data)

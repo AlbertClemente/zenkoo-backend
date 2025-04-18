@@ -39,6 +39,8 @@ class ExpenseListCreateView(ListCreateAPIView):
     pagination_class = ExpensePagination
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Expense.objects.none()
         return Expense.objects.filter(user=self.request.user).order_by('-date')
 
     def get_serializer_context(self):
@@ -108,4 +110,6 @@ class ExpenseDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Expense.objects.none()
         return Expense.objects.filter(user=self.request.user)

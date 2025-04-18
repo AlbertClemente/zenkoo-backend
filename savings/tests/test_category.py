@@ -5,6 +5,7 @@ from savings.models import Category, User
 
 class CategoryTests(APITestCase):
     def setUp(self):
+        Category.objects.all().delete()  # Opcional, para asegurar limpieza total
         self.user = User.objects.create_user(
             email='testuser@example.com',
             password='testpass123',
@@ -38,11 +39,14 @@ class CategoryTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_get_category_list(self):
+        Category.objects.filter(user=self.user).delete()
         Category.objects.create(user=self.user, **self.valid_data)
+
         response = self.client.get(reverse('category-list-create'))
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['name'], "Comida")
+        self.assertEqual(len(response.data["results"]), 1)
+        self.assertEqual(response.data["results"][0]['name'], "Comida")
 
     def test_get_requires_authentication(self):
         self.client.logout()

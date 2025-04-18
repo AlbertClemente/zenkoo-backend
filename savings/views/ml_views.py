@@ -1,22 +1,22 @@
+from savings.serializers import PredictCategoryInputSerializer
+from rest_framework import status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status, permissions
-from ..ml.predict import predict_category # Llamamos al script de predicción
-
-# Documentación
-from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiExample, OpenApiResponse
+from drf_spectacular.utils import extend_schema, OpenApiExample, OpenApiResponse
+from ..ml.predict import predict_category
 
 class PredictCategoryView(APIView):
     permission_classes = [permissions.IsAuthenticated]
+    serializer_class = PredictCategoryInputSerializer
 
     @extend_schema(
         tags=["AI"],
         summary="Predecir categoría para un gasto o ingreso",
         description="Devuelve la categoría Kakeibo sugerida en base al campo tipo o descripción.",
-        request={"type": "object", "properties": {"text": {"type": "string"}}},
+        request=PredictCategoryInputSerializer,
         responses={
-            200: {"type": "object", "properties": {"category": {"type": "string"}}},
-            400: {"description": "Texto no proporcionado"},
+            200: OpenApiResponse(description="Categoría predicha"),
+            400: OpenApiResponse(description="Texto no proporcionado"),
         },
         examples=[
             OpenApiExample(
@@ -27,10 +27,11 @@ class PredictCategoryView(APIView):
         ]
     )
     def post(self, request):
-        text = request.data.get("text", "")
-        if not text:
-            return Response({"error": "Texto no proporcionado"}, status=status.HTTP_400_BAD_REQUEST)
+        serializer = self.serializer_class(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        text = serializer.validated_data['text']
         try:
             category = predict_category(text)
             return Response({"category": category})

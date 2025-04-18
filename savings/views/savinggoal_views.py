@@ -38,6 +38,8 @@ class SavingGoalListCreateView(ListCreateAPIView):
     pagination_class = SavingGoalsPagination
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return SavingGoal.objects.none()
         return SavingGoal.objects.filter(user=self.request.user).order_by('deadline')
 
     def perform_create(self, serializer):
@@ -97,4 +99,6 @@ class SavingGoalDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return SavingGoal.objects.none()
         return SavingGoal.objects.filter(user=self.request.user)

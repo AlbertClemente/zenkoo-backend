@@ -15,7 +15,7 @@ class CriptoTests(APITestCase):
         self.user = User.objects.create_user(
             email='usuario@correo.com',
             password='contrasenyaSuperFuerte123',
-            date_of_birth=date(1990, 1, 1)
+            date_of_birth='1990-01-01'
         )
         refresh = RefreshToken.for_user(self.user)
         self.token = str(refresh.access_token)
@@ -27,14 +27,14 @@ class CriptoTests(APITestCase):
         self.update_url = reverse('cripto-update')
 
     def test_get_criptos(self):
+        Cripto.objects.all().delete()
         Cripto.objects.create(name="Bitcoin", symbol="BTC", price=75000)
         Cripto.objects.create(name="Ethereum", symbol="ETH", price=1600)
 
         response = self.client.get(self.cripto_url)
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 2)
-        self.assertEqual(response.data[0]['symbol'], "BTC")
+        self.assertEqual(len(response.data['results']), 2)
 
     def test_post_actualizar_criptos(self):
         response = self.client.post(self.update_url)

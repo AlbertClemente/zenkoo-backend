@@ -26,6 +26,8 @@ class CriptoListView(ListAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Cripto.objects.none()
         return Cripto.objects.all().order_by('name')
 
 @extend_schema(

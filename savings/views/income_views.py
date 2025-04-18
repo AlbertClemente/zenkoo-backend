@@ -37,6 +37,8 @@ class IncomeListCreateView(ListCreateAPIView):
     pagination_class = IncomePagination
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Income.objects.none()
         return Income.objects.filter(user=self.request.user).order_by('-date')
 
     def perform_create(self, serializer):
@@ -91,5 +93,7 @@ class IncomeDetailView(RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Income.objects.none()
         return Income.objects.filter(user=self.request.user)
 

@@ -5,14 +5,32 @@ from savings.ml.info import get_model_info
 from savings.ml.retrain import retrain_model_from_db, NotEnoughDataError
 from rest_framework import status
 
+# Documentación
+from drf_spectacular.utils import extend_schema, OpenApiTypes, OpenApiResponse
+
+@extend_schema(
+    tags=["Admin"],
+    summary="Información del modelo",
+    responses={200: OpenApiTypes.OBJECT}
+)
 class ModelInfoView(APIView):
     permission_classes = [IsAdminUser]  # Solo accesible para admin
 
     def get(self, request):
         return Response(get_model_info())
 
+@extend_schema(
+    tags=["Admin"],
+    summary="Reentrenar modelo desde base de datos",
+    responses={
+        200: OpenApiResponse(description="Reentrenado correctamente"),
+        400: OpenApiResponse(description="No hay suficientes datos"),
+        500: OpenApiResponse(description="Error interno")
+    }
+)
 class RetrainModelView(APIView):
     permission_classes = [IsAdminUser]
+    serializer_class = None
 
     def post(self, request):
         try:

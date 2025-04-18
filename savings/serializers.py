@@ -142,6 +142,30 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at', 'user']
 
 class MonthlyPlanSerializer(serializers.ModelSerializer):
+    income = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    expense = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    real_savings = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+    reflection = ReflectionSerializer(read_only=True)
+    reflection_id = serializers.PrimaryKeyRelatedField(
+        queryset=Reflection.objects.all(),
+        source='reflection',
+        write_only=True,
+        required=False,
+        allow_null=True
+    )
+
     class Meta:
         model = MonthlyPlan
-        fields = ['id', 'month', 'reserved_savings', 'reflection', 'created_at']
+        fields = [
+            'id', 'month', 'reserved_savings', 'reflection', 'reflection_id', 'created_at', 'income', 'expense', 'real_savings'
+        ]
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data['income'] = str(self.context.get('income', '0.00'))
+        data['expense'] = str(self.context.get('expense', '0.00'))
+        data['real_savings'] = str(self.context.get('real_savings', '0.00'))
+        return data
+
+class PredictCategoryInputSerializer(serializers.Serializer):
+    text = serializers.CharField(help_text="Texto del gasto o ingreso para categorizar")
