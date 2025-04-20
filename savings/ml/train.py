@@ -20,10 +20,17 @@ from datetime import datetime
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
-# Rutas
+# Obtener la ruta absoluta del directorio actual
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Carpeta /ml/
+
+# Definir la ruta correcta para /static/ml/
 STATIC_ML_DIR = os.path.join(BASE_DIR, '..', 'static', 'ml')
+
+# Crear el directorio si no existe
 os.makedirs(STATIC_ML_DIR, exist_ok=True)
+
+# Verificar si la ruta es correcta
+print(f"Modelo se guardará en: {STATIC_ML_DIR}")
 
 def save_model_info(categories, accuracy, sample_count):
     info = {

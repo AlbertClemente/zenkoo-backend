@@ -100,12 +100,27 @@ class SavingGoalSerializer(serializers.ModelSerializer):
 class ReflectionSerializer(serializers.ModelSerializer):
     """Serializer para crear y ver reflexiones personales del usuario"""
 
+    monthly_plan = serializers.PrimaryKeyRelatedField(queryset=MonthlyPlan.objects.all(), required=False)
+
     class Meta:
         model = Reflection
         fields = [
-            'id', 'title', 'content', 'created_at', 'updated_at', 'user'
+            'id', 'title', 'content', 'created_at', 'updated_at', 'user', 'monthly_plan'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at', 'user']
+
+    def validate_content(self, value):
+        if not value.strip():  # Si el contenido está vacío o sólo tiene espacios
+            raise serializers.ValidationError("El contenido no puede estar vacío")
+        return value
+
+    def validate_monthly_plan(self, value):
+        if value:
+            try:
+                MonthlyPlan.objects.get(id=value)
+            except MonthlyPlan.DoesNotExist:
+                raise serializers.ValidationError("El plan mensual con el ID proporcionado no existe.")
+        return value
 
 class CategorySerializer(serializers.ModelSerializer):
     """Serializer para gestionar categorías y subcategorías"""
@@ -146,19 +161,22 @@ class MonthlyPlanSerializer(serializers.ModelSerializer):
     expense = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     real_savings = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
     reflection = ReflectionSerializer(read_only=True)
-    reflection_id = serializers.PrimaryKeyRelatedField(
+
+    reflection_pk = serializers.PrimaryKeyRelatedField(
         queryset=Reflection.objects.all(),
-        source='reflection',
         write_only=True,
         required=False,
-        allow_null=True
+        allow_null=True,
+        source='reflection'
     )
 
     class Meta:
         model = MonthlyPlan
         fields = [
-            'id', 'month', 'reserved_savings', 'reflection', 'reflection_id', 'created_at', 'income', 'expense', 'real_savings'
+            'id', 'month', 'reserved_savings', 'reflection', 'reflection_pk',
+            'created_at', 'income', 'expense', 'real_savings'
         ]
+        read_only_fields = ['id', 'month', 'created_at']
 
     def to_representation(self, instance):
         data = super().to_representation(instance)

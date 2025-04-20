@@ -9,7 +9,7 @@ class Reflection(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reflections')
+    monthly_plan = models.OneToOneField('MonthlyPlan', on_delete=models.CASCADE, related_name='reflection_monthly_plan', null=True, blank=True)
 
     def __str__(self):
         return f"Reflexión de {self.user.email} el {self.created_at.date()}"
-    

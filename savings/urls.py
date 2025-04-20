@@ -13,7 +13,7 @@ from .views.savinggoal_views import SavingGoalListCreateView, SavingGoalDetailVi
 from .views.reflection_views import ReflectionListCreateView, ReflectionRetrieveUpdateDestroyView
 from .views.notification_views import NotificationListCreateView, NotificationDeleteAllView, NotificationRetrieveDeleteView, NotificationMarkReadView, unread_notifications_count
 from .views.cripto_views import CriptoListView, CriptoUpdateView
-from .views.montly_plan_views import MonthlyPlanCurrentView, MonthlyPlanCreateUpdateView
+from .views.montly_plan_views import MonthlyPlanCurrentView, MonthlyPlanCreateUpdateView, MonthlyPlanRetrieveUpdateView
 from .views.admin import ModelInfoView
 from .views.admin import RetrainModelView
 
@@ -41,6 +41,7 @@ urlpatterns = [
     path('criptos/update/', CriptoUpdateView.as_view(), name='cripto-update'),
     path('monthly-plan/current/', MonthlyPlanCurrentView.as_view(), name='monthly-plan-current'),
     path('monthly-plan/', MonthlyPlanCreateUpdateView.as_view(), name='monthly-plan-create-update'),
+    path('monthly-plan/<uuid:pk>/', MonthlyPlanRetrieveUpdateView.as_view(), name='monthly-plan-detail'),
     path('admin/model-info/', ModelInfoView.as_view(), name='model-info'),
     path("ml/retrain/", RetrainModelView.as_view(), name="retrain-model"),
 ]

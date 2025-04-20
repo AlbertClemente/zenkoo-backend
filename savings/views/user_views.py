@@ -3,6 +3,8 @@ from rest_framework.response import Response
 from rest_framework import status
 from savings.serializers import UserRegisterSerializer, UserSerializer
 from rest_framework.permissions import IsAuthenticated
+from savings.models import Category
+
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
 
@@ -22,11 +24,22 @@ class UserRegisterView(APIView):
     serializer_class = UserRegisterSerializer
 
     def post(self, request):
+        # Crear el serializador de registro de usuario con los datos recibidos
         serializer = UserRegisterSerializer(data=request.data)
 
         if serializer.is_valid():
-            serializer.save()
+            # Crear el usuario
+            user = serializer.save()
+
+            # Crear categorías predeterminadas para el nuevo usuario
+            categories = ["Supervivencia", "Ocio y vicio", "Cultura", "Extras"]
+            for category_name in categories:
+                Category.objects.get_or_create(name=category_name, type="expense", user=user)
+
+            # Retornar los datos del nuevo usuario
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        # Si el serializador no es válido, retornar los errores
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @extend_schema_view(

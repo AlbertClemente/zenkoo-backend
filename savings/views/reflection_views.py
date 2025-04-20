@@ -1,6 +1,8 @@
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
-from savings.models import Reflection
+from rest_framework import serializers
+
+from savings.models import Reflection, MonthlyPlan
 from savings.serializers import ReflectionSerializer
 
 # Documentación
@@ -31,12 +33,30 @@ class ReflectionListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        if getattr(self, "swagger_fake_view", False):
-            return Reflection.objects.none()
         return Reflection.objects.filter(user=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):
-        serializer.save(user=self.request.user)
+        # Verificar los datos que llegan
+        print("Datos de la solicitud:", self.request.data)
+
+        # Crear la reflexión
+        reflection = serializer.save(user=self.request.user)
+
+        # Obtener el 'monthly_plan_id' de la solicitud
+        monthly_plan_id = self.request.data.get('monthly_plan_id', None)
+        print(self.request.data)
+        if monthly_plan_id:
+            try:
+                # Buscar el MonthlyPlan con el ID proporcionado
+                monthly_plan = MonthlyPlan.objects.get(id=monthly_plan_id)
+                print("Plan mensual encontrado:", monthly_plan)
+
+                # Asociar la reflexión con el MonthlyPlan
+                reflection.monthly_plan = monthly_plan
+                reflection.save()
+
+            except MonthlyPlan.DoesNotExist:
+                raise serializers.ValidationError("El plan mensual proporcionado no existe.")
 
 @extend_schema_view(
     get=extend_schema(
