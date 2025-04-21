@@ -5,7 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
-from .views.user_views import UserRegisterView, UserProfileView
+from .views.user_views import UserRegisterView, UserProfileView, ChangePasswordView
 from .views.income_views import IncomeListCreateView, IncomeDetailView
 from .views.expense_views import ExpenseListCreateView, ExpenseDetailView
 from .views.category_views import CategoryListCreateView, CategoryRetrieveUpdateDestroyView
@@ -22,6 +22,7 @@ urlpatterns = [
     path('users/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('users/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('users/profile/', UserProfileView.as_view(), name='user-profile'),
+    path('users/change-password/', ChangePasswordView.as_view(), name='user-change-password'),
     path('incomes/', IncomeListCreateView.as_view(), name='income-list-create'),
     path('incomes/<uuid:pk>/', IncomeDetailView.as_view(), name='income-detail'),
     path('expenses/', ExpenseListCreateView.as_view(), name='expense-list-create'),

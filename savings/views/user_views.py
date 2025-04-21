@@ -1,7 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from savings.serializers import UserRegisterSerializer, UserSerializer
+from savings.serializers import UserRegisterSerializer, UserSerializer, ChangePasswordSerializer
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Category
 
@@ -54,18 +54,22 @@ class UserRegisterView(APIView):
     ),
     put=extend_schema(
         tags=["Users"],
-        summary="Actualizar perfil",
-        description="Actualiza completamente el perfil del usuario.",
+        summary="(NO RECOMENDADO) Actualizar perfil completamente",
+        description="Actualiza todo el perfil del usuario. ⚠️ Se deben enviar todos los campos requeridos, incluyendo fecha de nacimiento y otros.",
         responses={
             200: UserSerializer,
-            400: OpenApiResponse(description="Datos inválidos"),
+            400: OpenApiResponse(description="Datos inválidos o campos faltantes"),
             401: OpenApiResponse(description="No autenticado")
         },
     ),
     patch=extend_schema(
         tags=["Users"],
-        summary="Actualizar parcialmente perfil",
-        description="Actualiza algunos campos del perfil del usuario.",
+        summary="Actualizar perfil",
+        description="""
+        Permite modificar uno o varios campos del perfil del usuario (como nombre, apellidos o email).
+        
+        Este método es recomendado para formularios parciales, como la configuración del perfil.
+        """,
         responses={
             200: UserSerializer,
             400: OpenApiResponse(description="Datos inválidos"),
@@ -107,3 +111,26 @@ class UserProfileView(APIView):
     def delete(self, request):
         request.user.delete()
         return Response({"detail": "Usuario eliminado correctamente."}, status=status.HTTP_204_NO_CONTENT)
+
+@extend_schema(
+    tags=["Users"],
+    summary="Cambiar contraseña",
+    description="Permite al usuario autenticado cambiar su contraseña actual por una nueva.",
+    request=ChangePasswordSerializer,
+    responses={
+        200: OpenApiResponse(description="Contraseña cambiada correctamente"),
+        400: OpenApiResponse(description="Datos inválidos o contraseña actual incorrecta"),
+        401: OpenApiResponse(description="No autenticado"),
+    },
+)
+class ChangePasswordView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangePasswordSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            return Response({"detail": "Contraseña actualizada correctamente."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -33,6 +33,8 @@ class ReflectionListCreateView(ListCreateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
+        if getattr(self, "swagger_fake_view", False):
+            return Reflection.objects.none()
         return Reflection.objects.filter(user=self.request.user).order_by('-created_at')
 
     def perform_create(self, serializer):

@@ -37,6 +37,16 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         )
         return user
 
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField(required=True)
+    new_password = serializers.CharField(required=True, min_length=8)
+
+    def validate_current_password(self, value):
+        user = self.context['request'].user
+        if not user.check_password(value):
+            raise serializers.ValidationError("La contraseña actual no es correcta.")
+        return value
+
 class CriptoSerializer(serializers.ModelSerializer):
     """Serializer para ver criptomonedas"""
     class Meta:

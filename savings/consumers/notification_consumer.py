@@ -14,6 +14,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
+        print(f"[WS CONNECT] Me uno al grupo: {self.group_name}")
+
         await self.accept()
         print(f"WebSocket conectado para {self.group_name}")
 
@@ -48,6 +50,8 @@ class NotificationConsumer(AsyncWebsocketConsumer):
             "type": notification_type
         }
 
+
+        print(f"[ACDEBUG] notification data: {notification_data}")
         # Enviar mensaje a todos en el grupo usando `send_notification`
         await self.channel_layer.group_send(
             self.group_name,
@@ -58,4 +62,5 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         )
 
     async def send_notification(self, event):
+        print(f"[WS SEND] Enviando a {self.group_name}: {event['data']['message']}")
         await self.send(text_data=json.dumps(event["data"]))

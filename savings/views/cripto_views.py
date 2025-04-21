@@ -46,13 +46,13 @@ class CriptoUpdateView(APIView):
     def post(self, request):
         url = 'https://api.coingecko.com/api/v3/simple/price'
         params = {
-            'ids': 'bitcoin,ethereum,tether',
+            'ids': 'bitcoin,ethereum,tether,solana,ripple,dogecoin,cardano,polkadot,tron,shiba-inu,binancecoin,litecoin,avalanche,chainlink,stellar',
             'vs_currencies': 'eur'
         }
         response = requests.get(url, params=params)
 
         if response.status_code != 200:
-            return Response({'error': 'Error al conectar con CoinGecko'}, status=500)
+            return Response({'[ERROR]': 'Error al conectar con CoinGecko'}, status=500)
 
         data = response.json()
 
@@ -60,11 +60,25 @@ class CriptoUpdateView(APIView):
         for nombre, datos in {
             'Bitcoin': {'symbol': 'BTC', 'price': data.get('bitcoin', {}).get('eur')},
             'Ethereum': {'symbol': 'ETH', 'price': data.get('ethereum', {}).get('eur')},
-            'Tether': {'symbol': 'USDT', 'price': data.get('tether', {}).get('eur')}
+            'Tether': {'symbol': 'USDT', 'price': data.get('tether', {}).get('eur')},
+            'Solana': {'symbol': 'SOL', 'price': data.get('solana', {}).get('eur')},
+            'Ripple': {'symbol': 'XRP', 'price': data.get('ripple', {}).get('eur')},
+            'Dogecoin': {'symbol': 'DOGE', 'price': data.get('dogecoin', {}).get('eur')},
+            'Cardano': {'symbol': 'ADA', 'price': data.get('cardano', {}).get('eur')},
+            'Polkadot': {'symbol': 'DOT', 'price': data.get('polkadot', {}).get('eur')},
+            'Tron': {'symbol': 'TRX', 'price': data.get('tron', {}).get('eur')},
+            'Shiba Inu': {'symbol': 'SHIB', 'price': data.get('shiba-inu', {}).get('eur')},
+            'Binance Coin': {'symbol': 'BNB', 'price': data.get('binancecoin', {}).get('eur')},
+            'Litecoin': {'symbol': 'LTC', 'price': data.get('litecoin', {}).get('eur')},
+            'Avalanche': {'symbol': 'AVAX', 'price': data.get('avalanche', {}).get('eur')},
+            'Chainlink': {'symbol': 'LINK', 'price': data.get('chainlink', {}).get('eur')},
+            'Stellar': {'symbol': 'XLM', 'price': data.get('stellar', {}).get('eur')},
         }.items():
             price = datos['price']
-            print(f"[DEBUG] Cripto: {nombre}, Precio bruto: {price} ({type(price)})")
+            print(f"[WS DEBUG] Cripto: {nombre}, Precio bruto: {price} ({type(price)})")
+            
             if price is None:
+                print(f"[WS DEBUG] Cripto sin precio... saltamos cripto...")
                 continue
 
             try:
@@ -77,7 +91,7 @@ class CriptoUpdateView(APIView):
             old_cripto = Cripto.objects.filter(symbol=datos['symbol']).first()
             old_price = old_cripto.price if old_cripto else None
 
-            # Actualizar o crear
+            # Actualizar o crear cripto
             cripto, created = Cripto.objects.update_or_create(
                 symbol=datos['symbol'],
                 defaults={
@@ -87,10 +101,13 @@ class CriptoUpdateView(APIView):
                 }
             )
 
+            # print(f"[WS DEBUG] created: {created}")
+            # print(f"[WS DEBUG] old_price: {old_price}")
+            # print(f"[WS DEBUG] price_decimal: {price_decimal}")
+            # print(f"[WS DEBUG variacion? {abs( (price_decimal - old_price) / old_price) >= Decimal('0.01')}")
+
             # Si el precio ha variado a partir de un 1% o se ha creado nueva cripto
-            if created or (
-                    old_price is not None and abs((price_decimal - old_price) / old_price) >= Decimal("0.01")
-            ):
+            if created or (old_price is not None and abs((price_decimal - old_price) / old_price) >= Decimal("0.01")):
                 # Comprobar antes que nada que Channels está bien configurado
                 channel_layer = get_channel_layer()
                 if channel_layer is None:
@@ -99,16 +116,18 @@ class CriptoUpdateView(APIView):
 
                 # Enviaremos notificación a todos los usuarios suscritos, menos al del cron
                 usuarios_destino = User.objects.exclude(email="cronjob@zenkoo.com")
+                print(f"[WS DEBUG] usuarios_destino: {usuarios_destino}")
 
+                # Evitamos notificar el mismo precio
                 for user in usuarios_destino:
-                    # Evitamos notificar el mismo precio
                     ya_notificado = Notification.objects.filter(
                         user=user,
                         type="cripto",
                         message__icontains=cripto.name,
                         created_at__gte=now() - timedelta(hours=1)
                     ).exists()
-
+                    print(f"[WS DEBUG] ya_notificado: {ya_notificado}")
+                    
                     if ya_notificado:
                         print(f"[SKIP] Ya se notificó {cripto.name} a {user.email} en la última hora.")
                         continue
@@ -119,9 +138,11 @@ class CriptoUpdateView(APIView):
                         message=f"{cripto.name} está en {cripto.price}€ 🎉",
                         type="cripto"
                     )
+                    print(f"[WS DEBUG] notification: {notification}")
 
                     # Emitir la notificación por WebSocket
                     print(f"[WS DEBUG] Enviando notificación a grupo user_{str(user.id)}")
+
                     async_to_sync(channel_layer.group_send)(
                         f"user_{str(user.id)}",
                         {
@@ -136,7 +157,7 @@ class CriptoUpdateView(APIView):
                             }
                         }
                     )
-
+            else:
+                print(f"[WS DEBUG] Sin variación por el momento... Toca esperar.")
             resultados.append(CriptoSerializer(cripto).data)
-
         return Response(resultados)

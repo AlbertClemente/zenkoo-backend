@@ -25,4 +25,5 @@ COPY crontabfile /etc/cron.d/zenkoo-cron
 RUN chmod 0644 /etc/cron.d/zenkoo-cron && crontab /etc/cron.d/zenkoo-cron
 
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["gunicorn", "backend.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+#CMD ["gunicorn", "backend.asgi:application", "-k", "uvicorn.workers.UvicornWorker", "--bind", "0.0.0.0:8000"]
+CMD ["daphne", "-b", "0.0.0.0", "-p", "8000", "backend.asgi:application"]
