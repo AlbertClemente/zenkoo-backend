@@ -20,6 +20,22 @@ paths:
                 type: object
                 additionalProperties: {}
           description: ''
+  /api/admin/stats/:
+    get:
+      operationId: admin_stats_retrieve
+      summary: Estadísticas básicas de la plataforma
+      tags:
+      - Admin
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: {}
+          description: ''
   /api/categories/:
     get:
       operationId: categories_list
@@ -732,7 +748,6 @@ paths:
           multipart/form-data:
             schema:
               $ref: '#/components/schemas/MonthlyPlan'
-        required: true
       security:
       - jwtAuth: []
       responses:
@@ -746,6 +761,92 @@ paths:
           description: Datos inválidos
         '401':
           description: No autenticado
+  /api/monthly-plan/{id}/:
+    get:
+      operationId: monthly_plan_retrieve
+      summary: Obtener plan mensual por ID
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - MonthlyPlan
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyPlan'
+          description: ''
+    put:
+      operationId: monthly_plan_update
+      summary: Actualizar plan mensual (PUT)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - MonthlyPlan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MonthlyPlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MonthlyPlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MonthlyPlan'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyPlan'
+          description: ''
+    patch:
+      operationId: monthly_plan_partial_update
+      summary: Actualizar parcialmente plan mensual (PATCH)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - MonthlyPlan
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedMonthlyPlan'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedMonthlyPlan'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedMonthlyPlan'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MonthlyPlan'
+          description: ''
   /api/monthly-plan/current/:
     get:
       operationId: monthly_plan_current_retrieve
@@ -1438,14 +1539,42 @@ paths:
           description: No autorizado
         '404':
           description: No encontrada
+  /api/users/change-password/:
+    post:
+      operationId: users_change_password_create
+      description: Permite al usuario autenticado cambiar su contraseña actual por
+        una nueva.
+      summary: Cambiar contraseña
+      tags:
+      - Users
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChangePassword'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: Contraseña cambiada correctamente
+        '400':
+          description: Datos inválidos o contraseña actual incorrecta
+        '401':
+          description: No autenticado
   /api/users/login/:
     post:
       operationId: users_login_create
-      description: |-
-        Takes a set of user credentials and returns an access and refresh JSON web
-        token pair to prove the authentication of those credentials.
+      description: Devuelve access y refresh tokens si las credenciales son válidas.
+      summary: Iniciar sesión
       tags:
-      - users
+      - Users
       requestBody:
         content:
           application/json:
@@ -1458,12 +1587,15 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenObtainPair'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenObtainPair'
+                type: object
+                additionalProperties: {}
           description: ''
   /api/users/profile/:
     get:
@@ -1485,8 +1617,9 @@ paths:
           description: No autenticado
     put:
       operationId: users_profile_update
-      description: Actualiza completamente el perfil del usuario.
-      summary: Actualizar perfil
+      description: Actualiza todo el perfil del usuario. ⚠️ Se deben enviar todos
+        los campos requeridos, incluyendo fecha de nacimiento y otros.
+      summary: (NO RECOMENDADO) Actualizar perfil completamente
       tags:
       - Users
       requestBody:
@@ -1511,13 +1644,16 @@ paths:
                 $ref: '#/components/schemas/User'
           description: ''
         '400':
-          description: Datos inválidos
+          description: Datos inválidos o campos faltantes
         '401':
           description: No autenticado
     patch:
       operationId: users_profile_partial_update
-      description: Actualiza algunos campos del perfil del usuario.
-      summary: Actualizar parcialmente perfil
+      description: "\n        Permite modificar uno o varios campos del perfil del\
+        \ usuario (como nombre, apellidos o email).\n        \n        Este método\
+        \ es recomendado para formularios parciales, como la configuración del perfil.\n\
+        \        "
+      summary: Actualizar perfil
       tags:
       - Users
       requestBody:
@@ -1560,11 +1696,10 @@ paths:
   /api/users/refresh/:
     post:
       operationId: users_refresh_create
-      description: |-
-        Takes a refresh type JSON web token and returns an access type JSON web
-        token if the refresh token is valid.
+      description: Devuelve un nuevo token de acceso usando un refresh token válido.
+      summary: Refrescar token
       tags:
-      - users
+      - Users
       requestBody:
         content:
           application/json:
@@ -1577,12 +1712,15 @@ paths:
             schema:
               $ref: '#/components/schemas/TokenRefresh'
         required: true
+      security:
+      - {}
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TokenRefresh'
+                type: object
+                additionalProperties: {}
           description: ''
   /api/users/register/:
     post:
@@ -1654,6 +1792,17 @@ components:
       - type
       - updated_at
       - user
+    ChangePassword:
+      type: object
+      properties:
+        current_password:
+          type: string
+        new_password:
+          type: string
+          minLength: 8
+      required:
+      - current_password
+      - new_password
     Cripto:
       type: object
       description: Serializer para ver criptomonedas
@@ -1763,11 +1912,13 @@ components:
       type: object
       properties:
         id:
-          type: integer
+          type: string
+          format: uuid
           readOnly: true
         month:
           type: string
           format: date
+          readOnly: true
         reserved_savings:
           type: string
           format: decimal
@@ -1776,7 +1927,7 @@ components:
           allOf:
           - $ref: '#/components/schemas/Reflection'
           readOnly: true
-        reflection_id:
+        reflection_pk:
           type: string
           format: uuid
           writeOnly: true
@@ -2085,6 +2236,49 @@ components:
           type: string
           format: uuid
           readOnly: true
+    PatchedMonthlyPlan:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        month:
+          type: string
+          format: date
+          readOnly: true
+        reserved_savings:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+        reflection:
+          allOf:
+          - $ref: '#/components/schemas/Reflection'
+          readOnly: true
+        reflection_pk:
+          type: string
+          format: uuid
+          writeOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        income:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        expense:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
+        real_savings:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,8}(?:\.\d{0,2})?$
+          readOnly: true
     PatchedNotification:
       type: object
       description: Serializer para mostrar y gestionar notificaciones del usuario
@@ -2130,6 +2324,9 @@ components:
           type: string
           format: uuid
           readOnly: true
+        monthly_plan:
+          type: string
+          format: uuid
     PatchedSavingGoal:
       type: object
       properties:
@@ -2239,6 +2436,9 @@ components:
           type: string
           format: uuid
           readOnly: true
+        monthly_plan:
+          type: string
+          format: uuid
       required:
       - content
       - created_at
