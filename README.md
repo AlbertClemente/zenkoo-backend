@@ -177,6 +177,7 @@ Cada vez que se actualiza el precio de una criptomoneda:
 | `symbol`   | Criptomoneda (`BTC`, `ETH`, `USDT`)|
 | `price`    | Precio actualizado                 |
 | `timestamp`| Fecha y hora de la actualización   |
+```
 
 ---
 
