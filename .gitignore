@@ -35,7 +35,6 @@ media/
 
 # Secret files
 .env
-.env.*
 
 # PyCharm
 .idea/
@@ -47,4 +46,4 @@ htmlcov/
 # Migrations (opcional si no quieres subirlas aún)
 # **/migrations/*.py
 # **/migrations/*.pyc
-# !**/migrations/__init__.py
+# !**/migrations/__init__.py.env
