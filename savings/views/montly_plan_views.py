@@ -88,15 +88,18 @@ class MonthlyPlanCreateUpdateView(generics.GenericAPIView):
         plan, created = MonthlyPlan.objects.get_or_create(user=user, month=month_start)
 
         # Si el campo reflection_id está presente, actualizamos la reflexión
-        reflection_pk = request.data.get('reflection_pk', None)
+        reflection_id = request.data.get('reflection_id')
 
-        if reflection_pk:
-            try:
-                reflection = Reflection.objects.get(id=reflection_pk)
-                plan.reflection = reflection
-                plan.save()
-            except Reflection.DoesNotExist:
-                return Response({"error": "Reflexión no encontrada"}, status=status.HTTP_400_BAD_REQUEST)
+        if "reflection_id" in request.data:
+            if not reflection_id or reflection_id in ["", "null", None]:
+                plan.reflection = None
+            else:
+                try:
+                    reflection = Reflection.objects.get(id=reflection_id)
+                    plan.reflection = reflection
+                except Reflection.DoesNotExist:
+                    return Response({"error": "Reflexión no encontrada"}, status=status.HTTP_400_BAD_REQUEST)
+            plan.save()
 
         # Guardar o actualizar el plan mensual
         serializer = self.get_serializer(plan, data=data, partial=True, context={
@@ -107,7 +110,13 @@ class MonthlyPlanCreateUpdateView(generics.GenericAPIView):
 
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
+            plan.refresh_from_db()
+            updated_serializer = self.get_serializer(plan, context={
+                'income': total_income,
+                'expense': total_expense,
+                'real_savings': real_savings
+            })
+            return Response(updated_serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @extend_schema_view(
@@ -118,7 +127,13 @@ class MonthlyPlanCreateUpdateView(generics.GenericAPIView):
     ),
     put=extend_schema(
         tags=["MonthlyPlan"],
-        summary="Actualizar plan mensual por ID",
+        summary="Actualizar plan mensual (PUT)",
+        request=MonthlyPlanSerializer,
+        responses={200: MonthlyPlanSerializer}
+    ),
+    patch=extend_schema(
+        tags=["MonthlyPlan"],
+        summary="Actualizar parcialmente plan mensual (PATCH)",
         request=MonthlyPlanSerializer,
         responses={200: MonthlyPlanSerializer}
     ),
@@ -129,5 +144,4 @@ class MonthlyPlanRetrieveUpdateView(RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        # Asegura que el usuario solo accede a sus propios planes
         return MonthlyPlan.objects.filter(user=self.request.user)

@@ -193,6 +193,11 @@ class MonthlyPlanSerializer(serializers.ModelSerializer):
         data['income'] = str(self.context.get('income', '0.00'))
         data['expense'] = str(self.context.get('expense', '0.00'))
         data['real_savings'] = str(self.context.get('real_savings', '0.00'))
+
+        # Esto asegura que si la reflexión es None, se devuelve como tal
+        if instance.reflection is None:
+            data['reflection'] = None
+
         return data
 
 class PredictCategoryInputSerializer(serializers.Serializer):

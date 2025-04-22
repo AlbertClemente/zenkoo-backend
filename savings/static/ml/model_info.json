@@ -1,1 +1,1 @@
-{"lastTrainedAt": "2025-04-18T17:52:45.429215", "sampleCount": 140, "categories": ["Cultura", "Desconocido", "Extras", "Ocio y vicio", "Supervivencia"], "accuracy": 0.5357, "modelVersion": "1744998765.42922"}
+{"lastTrainedAt": "2025-04-22T11:15:00.772155", "sampleCount": 22, "categories": ["Cultura", "Extras", "Ocio y vicio", "Supervivencia"], "accuracy": 40.0, "modelVersion": "1745320500.772162", "categoryDistribution": {"Supervivencia": 7, "Ocio y vicio": 7, "Cultura": 4, "Extras": 4}}

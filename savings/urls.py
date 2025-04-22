@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+from .views.user_auth_views import CustomTokenObtainPairView, CustomTokenRefreshView
 from .views.user_views import UserRegisterView, UserProfileView, ChangePasswordView
 from .views.income_views import IncomeListCreateView, IncomeDetailView
 from .views.expense_views import ExpenseListCreateView, ExpenseDetailView
@@ -14,14 +15,14 @@ from .views.reflection_views import ReflectionListCreateView, ReflectionRetrieve
 from .views.notification_views import NotificationListCreateView, NotificationDeleteAllView, NotificationRetrieveDeleteView, NotificationMarkReadView, unread_notifications_count
 from .views.cripto_views import CriptoListView, CriptoUpdateView
 from .views.montly_plan_views import MonthlyPlanCurrentView, MonthlyPlanCreateUpdateView, MonthlyPlanRetrieveUpdateView
-from .views.admin import ModelInfoView
+from .views.admin import ModelInfoView, PlatformStatsView
 from .views.admin import RetrainModelView
 
 urlpatterns = [
     path('users/register/', UserRegisterView.as_view(), name='user-register'),
-    path('users/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('users/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('users/profile/', UserProfileView.as_view(), name='user-profile'),
+    path('users/login/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('users/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
     path('users/change-password/', ChangePasswordView.as_view(), name='user-change-password'),
     path('incomes/', IncomeListCreateView.as_view(), name='income-list-create'),
     path('incomes/<uuid:pk>/', IncomeDetailView.as_view(), name='income-detail'),
@@ -44,5 +45,6 @@ urlpatterns = [
     path('monthly-plan/', MonthlyPlanCreateUpdateView.as_view(), name='monthly-plan-create-update'),
     path('monthly-plan/<uuid:pk>/', MonthlyPlanRetrieveUpdateView.as_view(), name='monthly-plan-detail'),
     path('admin/model-info/', ModelInfoView.as_view(), name='model-info'),
+    path("admin/stats/", PlatformStatsView.as_view(), name='platform-stats'),
     path("ml/retrain/", RetrainModelView.as_view(), name="retrain-model"),
 ]

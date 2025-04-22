@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
+from django.db import models
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAdminUser
 from savings.ml.info import get_model_info
 from savings.ml.retrain import retrain_model_from_db, NotEnoughDataError
 from rest_framework import status
+from savings.models import Income, Expense, SavingGoal
 
 # Documentación
 from drf_spectacular.utils import extend_schema, OpenApiTypes, OpenApiResponse
@@ -46,3 +49,29 @@ class RetrainModelView(APIView):
                 {"detail": f"Error interno al reentrenar el modelo: {str(e)}"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+@extend_schema(
+    tags=["Admin"],
+    summary="Estadísticas básicas de la plataforma",
+    responses={200: OpenApiTypes.OBJECT}
+)
+class PlatformStatsView(APIView):
+    permission_classes = [IsAdminUser]
+    serializer_class = None
+
+    def get(self, request):
+        User = get_user_model()
+
+        total_users = User.objects.count()
+        total_incomes = Income.objects.count()
+        total_expenses = Expense.objects.count()
+        total_goals = SavingGoal.objects.count()
+        total_saved = SavingGoal.objects.aggregate(total=models.Sum("current_amount"))["total"] or 0
+
+        return Response({
+            "total_users": total_users,
+            "total_incomes": total_incomes,
+            "total_expenses": total_expenses,
+            "total_goals": total_goals,
+            "total_saved": total_saved,
+        })

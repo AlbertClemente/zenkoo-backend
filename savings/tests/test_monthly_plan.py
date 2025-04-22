@@ -41,6 +41,7 @@ class MonthlyPlanTests(APITestCase):
             'reflection_id': str(reflection.id)
         }
         response = self.client.post(self.url_create_update, data)
+        self.assertIsNotNone(response.data['reflection'])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['reflection']['id'], str(reflection.id))
 
@@ -61,9 +62,10 @@ class MonthlyPlanTests(APITestCase):
             'reflection_id': None
         }
         response = self.client.post(self.url_create_update, data, format='json')
+        self.assertIsNone(response.data["reflection"])
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data['reserved_savings'], '180.00')
-        self.assertIsNone(response.data['reflection'])
+        self.assertEqual(response.data["reflection"], None)
 
     def test_get_monthly_summary(self):
         Income.objects.create(user=self.user, amount=1000, date=self.month_start)
