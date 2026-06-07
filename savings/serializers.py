@@ -66,8 +66,6 @@ class IncomeSerializer(serializers.ModelSerializer):
 
 
 class ExpenseSerializer(serializers.ModelSerializer):
-    print("🔁 Cargando ExpenseSerializer actualizado")
-
     category = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
@@ -95,7 +93,6 @@ class ExpenseSerializer(serializers.ModelSerializer):
         raise serializers.ValidationError("Categoría no válida.")
 
     def create(self, validated_data):
-        print("✅ ExpenseSerializer ACTIVO")
         return super().create(validated_data)
 
 class SavingGoalSerializer(serializers.ModelSerializer):

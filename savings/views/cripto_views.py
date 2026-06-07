@@ -1,4 +1,6 @@
+import logging
 import requests
+
 from decimal import Decimal, InvalidOperation, ROUND_DOWN
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
@@ -9,6 +11,8 @@ from savings.serializers import CriptoSerializer
 from django.utils.timezone import now, timedelta
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
+
+logger = logging.getLogger(__name__)
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -75,16 +79,17 @@ class CriptoUpdateView(APIView):
             'Stellar': {'symbol': 'XLM', 'price': data.get('stellar', {}).get('eur')},
         }.items():
             price = datos['price']
-            print(f"[WS DEBUG] Cripto: {nombre}, Precio bruto: {price} ({type(price)})")
-            
+           
+            logger.debug("Cripto: %s, Precio bruto: %s (%s)", nombre, price, type(price))
+
             if price is None:
-                print(f"[WS DEBUG] Cripto sin precio... saltamos cripto...")
+                logger.debug("Cripto sin precio, saltando...")
                 continue
 
             try:
                 price_decimal = Decimal(str(price))
             except (InvalidOperation, TypeError, ValueError) as e:
-                print(f"[ERROR] Conversión Decimal fallida: {price} -> {e}")
+                logger.error("Conversión Decimal fallida: %s -> %s", price, e)
                 continue
 
             # Buscar cripto antes
@@ -101,22 +106,18 @@ class CriptoUpdateView(APIView):
                 }
             )
 
-            # print(f"[WS DEBUG] created: {created}")
-            # print(f"[WS DEBUG] old_price: {old_price}")
-            # print(f"[WS DEBUG] price_decimal: {price_decimal}")
-            # print(f"[WS DEBUG variacion? {abs( (price_decimal - old_price) / old_price) >= Decimal('0.01')}")
 
             # Si el precio ha variado a partir de un 1% o se ha creado nueva cripto
             if created or (old_price is not None and abs((price_decimal - old_price) / old_price) >= Decimal("0.01")):
                 # Comprobar antes que nada que Channels está bien configurado
                 channel_layer = get_channel_layer()
                 if channel_layer is None:
-                    print("[ERROR] channel_layer es None, ¿Channels está bien configurado?")
+                    logger.error("channel_layer es None, ¿Channels está bien configurado?")
                     return Response({'[ERROR]': 'No se pudo enviar notificación WebSocket'}, status=500)
 
                 # Enviaremos notificación a todos los usuarios suscritos, menos al del cron
                 usuarios_destino = User.objects.exclude(email="cronjob@zenkoo.com")
-                print(f"[WS DEBUG] usuarios_destino: {usuarios_destino}")
+                logger.debug("usuarios_destino: %s", usuarios_destino)
 
                 # Evitamos notificar el mismo precio
                 for user in usuarios_destino:
@@ -126,10 +127,10 @@ class CriptoUpdateView(APIView):
                         message__icontains=cripto.name,
                         created_at__gte=now() - timedelta(hours=1)
                     ).exists()
-                    print(f"[WS DEBUG] ya_notificado: {ya_notificado}")
-                    
+                    logger.debug("ya_notificado: %s", ya_notificado)
+
                     if ya_notificado:
-                        print(f"[SKIP] Ya se notificó {cripto.name} a {user.email} en la última hora.")
+                        logger.info("Ya se notificó %s a %s en la última hora, saltando.", cripto.name, user.email)
                         continue
 
                     # Crear la notificación para ese user
@@ -138,10 +139,10 @@ class CriptoUpdateView(APIView):
                         message=f"{cripto.name} está en {cripto.price}€ 🎉",
                         type="cripto"
                     )
-                    print(f"[WS DEBUG] notification: {notification}")
+                    logger.debug("notification: %s", notification)
 
                     # Emitir la notificación por WebSocket
-                    print(f"[WS DEBUG] Enviando notificación a grupo user_{str(user.id)}")
+                    logger.debug("Enviando notificación a grupo user_%s", str(user.id))
 
                     async_to_sync(channel_layer.group_send)(
                         f"user_{str(user.id)}",
@@ -158,6 +159,7 @@ class CriptoUpdateView(APIView):
                         }
                     )
             else:
-                print(f"[WS DEBUG] Sin variación por el momento... Toca esperar.")
+                logger.debug("Sin variación por el momento.")
+
             resultados.append(CriptoSerializer(cripto).data)
         return Response(resultados)

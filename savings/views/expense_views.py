@@ -1,3 +1,5 @@
+import logging
+
 from rest_framework.generics import ListCreateAPIView, RetrieveUpdateDestroyAPIView
 from rest_framework.permissions import IsAuthenticated
 from savings.models import Expense
@@ -5,6 +7,8 @@ from savings.serializers import ExpenseSerializer
 from savings.pagination import ExpensePagination
 from django_filters.rest_framework import DjangoFilterBackend
 from savings.filters.filters_expenses import ExpenseFilter
+
+logger = logging.getLogger(__name__)
 
 # Documentación
 from drf_spectacular.utils import extend_schema, extend_schema_view, OpenApiResponse
@@ -47,10 +51,10 @@ class ExpenseListCreateView(ListCreateAPIView):
         return {'request': self.request}
 
     def post(self, request, *args, **kwargs):
-        print("Payload recibido en /api/expenses/:", request.data)
+        logger.debug("Payload recibido en /api/expenses/: %s", request.data)
         serializer = self.get_serializer(data=request.data)
         if not serializer.is_valid():
-            print("🔴 Errores del serializer:", serializer.errors)
+            logger.warning("Errores del serializer: %s", serializer.errors)
         return super().post(request, *args, **kwargs)
 
     def perform_create(self, serializer):

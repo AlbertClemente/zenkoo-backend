@@ -5,7 +5,7 @@ import joblib
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 # Ruta absoluta al archivo del modelo entrenado
-MODEL_PATH = os.path.join(BASE_DIR, "model.pkl")
+MODEL_PATH = os.path.join(BASE_DIR, '..', 'static', 'ml', 'model.pkl')
 
 # Cargamos el modelo al iniciar el módulo (para no cargarlo cada vez)
 model = None

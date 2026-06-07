@@ -43,7 +43,6 @@ media/
 htmlcov/
 .coverage
 
-# Migrations (opcional si no quieres subirlas aún)
-# **/migrations/*.py
-# **/migrations/*.pyc
-# !**/migrations/__init__.py.env
+# ML statics
+savings/static/ml/model.pkl
+savings/static/ml/model_info.json

@@ -1,3 +1,5 @@
+import logging
+
 # Importamos pandas para manejar datos tabulares
 import pandas as pd
 
@@ -29,8 +31,7 @@ STATIC_ML_DIR = os.path.join(BASE_DIR, '..', 'static', 'ml')
 # Crear el directorio si no existe
 os.makedirs(STATIC_ML_DIR, exist_ok=True)
 
-# Verificar si la ruta es correcta
-print(f"Modelo se guardará en: {STATIC_ML_DIR}")
+logger = logging.getLogger(__name__)
 
 def save_model_info(categories, accuracy, sample_count):
     info = {
@@ -41,6 +42,8 @@ def save_model_info(categories, accuracy, sample_count):
         "modelVersion": str(datetime.now().timestamp())
     }
 
+    logger.info("Modelo se guardará en: %s", STATIC_ML_DIR)
+
     with open(os.path.join(STATIC_ML_DIR, "model_info.json"), "w") as f:
         json.dump(info, f)
 
@@ -49,10 +52,10 @@ def train_model():
     dataset_path = os.path.join(BASE_DIR, "dataset_kakeibo.csv")
     model_path = os.path.join(STATIC_ML_DIR, "model.pkl")
 
-    print("📥 Leyendo el dataset...")
+    logger.info("Leyendo el dataset...")
     df = pd.read_csv(dataset_path)
 
-    print("🧼 Limpiando datos...")
+    logger.info("Leyendo el dataset...")
     df = df.dropna(subset=["type", "category"])
     df['type'] = df['type'].astype(str).str.strip()
     df['category'] = df['category'].astype(str).str.strip()
@@ -63,7 +66,7 @@ def train_model():
 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    print("⚙️ Entrenando el modelo...")
+    logger.info("Entrenando el modelo...")
     model = Pipeline([
         ('vectorizer', TfidfVectorizer()),
         ('classifier', MultinomialNB())
@@ -72,9 +75,9 @@ def train_model():
 
     y_pred = model.predict(X_test)
     accuracy = accuracy_score(y_test, y_pred)
-    print(f"📈 Accuracy: {accuracy:.4f}")
+    logger.info("Accuracy: %.4f", accuracy)
 
-    print(f"💾 Guardando modelo en {model_path}...")
+    logger.info("Guardando modelo en %s...", model_path)
     joblib.dump(model, model_path)
 
     save_model_info(
@@ -83,8 +86,7 @@ def train_model():
         sample_count=len(y)
     )
 
-    print("✅ Entrenamiento completo.")
-
+    logger.info("Entrenamiento completo.")
 
 if __name__ == "__main__":
     train_model()

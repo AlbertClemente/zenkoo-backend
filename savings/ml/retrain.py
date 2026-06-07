@@ -1,3 +1,5 @@
+import logging
+
 from savings.models import Expense
 import pandas as pd
 import os
@@ -17,6 +19,9 @@ STATIC_ML_DIR = os.path.join(BASE_DIR, '..', 'static', 'ml')
 
 # Nos aseguramos que que la carpeta ml/ existe antes de guardar:
 os.makedirs(STATIC_ML_DIR, exist_ok=True)
+
+logger = logging.getLogger(__name__)
+
 
 class NotEnoughDataError(Exception):
     def __init__(self, detail):
@@ -42,18 +47,18 @@ def save_model_info(categories, accuracy, sample_count, category_distribution=No
 
 
 def retrain_model_from_db():
-    print("📡 Consultando gastos con categoría...")
+    logger.info("Consultando gastos con categoría...")
 
     all_expenses = Expense.objects.select_related('category').filter(category__isnull=False)
 
-    print(f"🔎 Gastos encontrados: {len(all_expenses)}")
+    logger.info("Gastos encontrados: %d", len(all_expenses))
 
     valid_expenses = [
         expense for expense in all_expenses
         if expense.type and expense.type.strip() and expense.category and expense.category.name and expense.category.name.strip()
     ]
 
-    print(f"✅ Gastos válidos para entrenamiento: {len(valid_expenses)}")
+    logger.info("Gastos válidos para entrenamiento: %d", len(valid_expenses))
 
     if len(valid_expenses) < MIN_VALID_SAMPLES:
         raise NotEnoughDataError(
@@ -69,15 +74,15 @@ def retrain_model_from_db():
     X = data['type']
     y = data['category']
 
-    print("⚙️ Reentrenando modelo con datos reales...")
+    logger.info("Reentrenando modelo con datos reales...")
 
     accuracy = None
     if len(set(y)) > 1:
         try:
             X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-            print(f"🎯 Split: Train={len(X_train)}, Test={len(X_test)}")
-            print("🎯 Clases en test:", set(y_test))
+            logger.info("Split: Train=%d, Test=%d", len(X_train), len(X_test))
+            logger.info("Clases en test: %s", set(y_test))
 
             model = Pipeline([
                 ('vectorizer', TfidfVectorizer()),
@@ -87,12 +92,12 @@ def retrain_model_from_db():
 
             y_pred = model.predict(X_test)
             accuracy = accuracy_score(y_test, y_pred)
-            print(f"📊 Precisión del modelo (accuracy): {accuracy:.2%}")
+            logger.info("Precisión del modelo (accuracy): %.2%%", accuracy)
         except Exception as e:
-            print(f"⚠️ Error calculando precisión: {type(e).__name__}: {e}")
+            logger.warning("Error calculando precisión: %s: %s", type(e).__name__, e)
             accuracy = None
     else:
-        print("⚠️ No hay suficientes categorías distintas para calcular el accuracy.")
+        logger.warning("No hay suficientes categorías distintas para calcular el accuracy.")
 
     # Entrenamos con todos los datos (para producción)
     final_model = Pipeline([
@@ -102,11 +107,11 @@ def retrain_model_from_db():
     final_model.fit(X, y)
 
     model_path = os.path.join(STATIC_ML_DIR, 'model.pkl')
-    print(f"📂 STATIC_ML_DIR: {os.path.abspath(STATIC_ML_DIR)}")
-    print(f"💾 Guardando modelo en {model_path}...")
+    logger.info("STATIC_ML_DIR: %s", os.path.abspath(STATIC_ML_DIR))
+    logger.info("Guardando modelo en %s...", model_path)
     joblib.dump(final_model, os.path.join(STATIC_ML_DIR, 'model.pkl'))
 
-    print(f"🎉 Modelo reentrenado con éxito usando {len(y)} registros.")
+    logger.info("Modelo reentrenado con éxito usando %d registros.", len(y))
 
     category_counts = Counter(y)
     save_model_info(
